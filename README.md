@@ -2,7 +2,7 @@
 
 Web-based radio modelling and planning tool for LoRa networks, developed as part of a bachelor’s thesis.
 
-�� **Live demo:** https://rf-planner.komelt.dev/
+**Live demo:** https://rf-planner.komelt.dev/
 
 ---
 
@@ -22,15 +22,15 @@ The tool is intended to simplify LoRa network planning in geographically complex
 
 ## Features
 
-- �� **Radio coverage simulation** based on the Longley–Rice (ITM) propagation model  
-- ��️ **Line-of-sight (LOS) analysis** with Fresnel zone visualization  
-- ��️ **Interactive map-based interface** for selecting nodes and areas  
-- �� **Optimal node placement**
+- **Radio coverage simulation** based on the Longley–Rice (ITM) propagation model  
+- **Line-of-sight (LOS) analysis** with Fresnel zone visualization  
+- **Interactive map-based interface** for selecting nodes and areas  
+- **Optimal node placement**
   - from a predefined set of candidate locations
   - from an automatically detected area (terrain-based candidates)
-- �� **Real terrain data support** using SRTM elevation models  
-- �� **Validation with real-world field measurements**  
-- �� **Open-source and extensible architecture**
+- **Real terrain data support** using SRTM elevation models  
+- **Validation with real-world field measurements**  
+- **Open-source and extensible architecture**
 
 ---
 
@@ -60,7 +60,7 @@ The application follows a modular, service-oriented architecture:
 
 A publicly available instance of the application is deployed at:
 
-�� **https://rf-planner.komelt.dev/**
+**https://rf-planner.komelt.dev/**
 
 This instance demonstrates the core functionality of the system, including coverage prediction and line-of-sight analysis.
 
