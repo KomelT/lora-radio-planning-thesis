@@ -1,0 +1,415 @@
+\chapter{Implementacija}
+Po pregledu sorodnih del sem se odločil, da aplikacije ne bom razvijal iz nič, temveč bom izvedel vejitev (angl.~\textit{fork}) obstoječega projekta \texttt{Meshtastic Site Planner}~\cite{meshtasticSitePlanner}, ki omogoča simulacijo širjenja radijskega signala. Projekt je licenciran pod licenco GPL~3~\cite{gpl3}, ki dovoljuje uporabo, spreminjanje in distribucijo programske opreme, pod pogojem, da so tudi izpeljana dela objavljena pod isto licenco. Tak licenčni model zagotavlja odprtost izvorne kode ter omogoča, da so nadaljnje izboljšave dostopne širši skupnosti, ne le posameznemu razvijalcu.
+
+Namesto razvoja osnovne infrastrukture aplikacije sem se osredotočil na razširitve in nadgradnje, kot so integracija simulacijskega orodja SPLAT!, optimizacija prikaza rezultatov na interaktivnem zemljevidu ter dodajanje funkcionalnosti za iskanje optimalnih lokacij oddajnikov. S tem sem povečal učinkovitost razvoja in hkrati prispeval k obstoječemu odprtokodnemu ekosistemu.
+
+\section{Zaledni del}
+Zaledni del je implementiran v programskem jeziku Python~\cite{python}, pri čemer je za gradnjo spletnega vmesnika uporabljeno ogrodje FastAPI~\cite{fastapi}. Ogrodje omogoča enostavno vzpostavitev HTTP povezav ter olajša dodajanje in vzdrževanje funkcionalnosti REST API, ki so ključne za komunikacijo med čelnim in zalednim delom aplikacije.
+
+Sistemu sem dodal dve novi API poti (angl.~\textit{routes}):
+\begin{itemize}
+    \item \textbf{POST /los} -- sproži simulacijo vidne linije (angl.~\textit{line-of-sight}) med dvema točkama,
+    \item \textbf{DELETE /coverage/:task\_id} -- omogoča brisanje shranjenih rezultatov pokritosti.
+\end{itemize}
+
+Dve obstoječi poti sem preimenoval, da sledita poenotenemu poimenovanju:
+\begin{itemize}
+    \item \textbf{POST /predict} $\rightarrow$ \textbf{POST /coverage} -- sproži simulacijo radijske pokritosti glede na parametre oddajnika,
+    \item \textbf{/status/:task\_id} $\rightarrow$ \textbf{GET /task} -- vrne stanje naloge in (ko so pripravljeni) dostop do rezultatov.
+\end{itemize}
+
+Poti \textbf{POST /los} in \textbf{POST /coverage} najprej validirata vhodne podatke glede na vnaprej definiran podatkovni model. Nato ustvarita novo nalogo, ji dodelita status \texttt{processing} ter začneta obdelavo zahtevka. Čelnemu delu aplikacije se vrne identifikator naloge, prek katerega je mogoče spremljati njeno stanje.
+
+\subsection{Prenos in pretvorba digitalnih višinskih podatkov}
+Višinski podatki so eden izmed ključnih gradnikov natančne simulacije širjenja radijskega signala, saj neposredno vplivajo na izračun vidne linije, zakritosti Fresnelovih con ter difrakcijskih izgub. Uporaba napačnih ali premalo natančnih digitalnih modelov višin lahko vodi do nerealnih napovedi pokritosti, bodisi v obliki precenjene jakosti signala bodisi v napačni identifikaciji ovir na poti signala.
+
+Radijski modeli, kot je Longley--Rice (ITM), temeljijo na vzdolžnem profilu terena med oddajnikom in sprejemnikom, pri čemer lahko že razlike nekaj metrov v višini terena bistveno spremenijo izračunano zakritost prve Fresnelove cone in s tem končno napovedano izgubo poti. Raziskave kažejo, da imajo različne baze višin z različno prostorsko ločljivostjo in načinom zajema (npr.~SRTM, USGS NED, LIDAR) opazen vpliv na rezultate simulacij; grobejši modeli lahko spregledajo manjše terenske ovire ali pa zaradi šuma povzročijo umetno povečanje izgub signala~\cite{8077956}.
+
+SPLAT! za delovanje potrebuje digitalne modele višin (DEM, angl.~\textit{Digital Elevation Model}), ki opisujejo višino terena in so praviloma na voljo v obliki datotek \texttt{.hgt}. Program je bil zasnovan za delo z višinskimi podatki misije \textit{Shuttle Radar Topography Mission (SRTM)}~\cite{srtm}, ki jih je NASA zbrala med 11-dnevno misijo februarja 2000. Rezultat misije je globalno usklajen digitalni model višin, ki pokriva približno 80~\% kopnega med 60$^\circ$ severne in 56$^\circ$ južne zemljepisne širine z ločljivostjo do 30~m.
+
+Pred uporabo je treba surove višinske podatke pretvoriti v obliko, ki jo SPLAT! razume. Za to služita pripomočka \texttt{srtm2sdf} in \texttt{srtm2sdf-hd}, ki podatke iz formata \texttt{.hgt} pretvorita v format \texttt{.sdf} (\textit{Splat Data File}), ki omogoča hitrejše branje in obdelavo znotraj simulacijskega jedra.
+
+Podatki misije SRTM so na voljo v dveh ločljivostnih različicah:
+\begin{itemize}
+  \item \textbf{SRTM3} -- ločljivost 3 ločne sekunde (približno 90~m med vzorci), skoraj globalna pokritost;
+  \item \textbf{SRTM1} -- ločljivost 1 ločne sekunde (približno 30~m med vzorci), sprva omejena na ZDA, kasneje razširjena tudi na druge regije.
+\end{itemize}
+
+Orodje \texttt{srtm2sdf} omogoča pretvorbo podatkov SRTM3, medtem ko \texttt{srtm2sdf-hd} omogoča pretvorbo visoko ločljivostnih podatkov SRTM1 v izboljšan format \texttt{.sdf} z oznako \texttt{-hd}. Večja prostorska natančnost je posebej pomembna pri razgibanem terenu ali pri analizah na krajših razdaljah, kjer lahko že manjše razlike v višinskih podatkih vplivajo na rezultate simulacije.
+
+V začetni fazi je zaledni del aplikacije samodejno izvajal pretvorbo iz \texttt{.hgt} v \texttt{.sdf}, kar je omogočalo izvajanje simulacij kjerkoli na svetu, vendar je postopek podaljšal čas obdelave in poslabšal uporabniško izkušnjo. Za optimizacijo sem uporabil vir \texttt{viewfinderpanoramas.org}~\cite{viewfinder}, ki ponuja že pripravljene in preverjene višinske ploščice v ustreznem formatu. Ploščice za območje Evrope sem prenesel in shranil na lasten strežnik, od koder jih aplikacija po potrebi samodejno pridobi in uporabi pri izvajanju simulacij. S tem se zmanjša zakasnitev ob začetku izračuna ter izboljša odzivnost sistema pri ponavljajočih se simulacijah.
+
+\subsection{Izračun potrebnih \texttt{.sdf} ploščic za vidno linijo}
+Ker izvorna aplikacija ni podpirala preverjanja vidne linije, sem implementiral funkcijo, ki izračuna, katere ploščice (angl.~\textit{tiles}) so potrebne za izvedbo simulacije.
+Za preverjanje vidne linije (LOS) med oddajnikom $(\varphi_\mathrm{tx}, \lambda_\mathrm{tx})$ in sprejemnikom $(\varphi_\mathrm{rx}, \lambda_\mathrm{rx})$ potrebujemo zgolj tiste SRTM ploščice, ki jih seka zveznica med točkama. Namesto prenosa večjega nabora ploščic za širše območje se uporabi algoritmičen sprehod po mreži ploščic, ki v času $O(n)$ (kjer je $n$ število prečkanih ploščic) deterministično izdela seznam natančno tistih celic, ki jih daljica prečka. S tem se zmanjša količina podatkov za prenos in skrajša priprava simulacije.
+
+\paragraph{Diskretizacija prostora.}
+Koordinate obravnavamo v stopinjah in prostor razdelimo na celice velikosti $1^\circ \times 1^\circ$. 
+Za parametrični opis daljice med končnima točkama vzamemo $(x(t), y(t)) = (x_0, y_0) + t\,(dx, dy)$, $t \in [0,1]$, kjer $x$ predstavlja geografsko dolžino in $y$ geografsko širino, $dx = x_1 - x_0$ in $dy = y_1 - y_0$.
+
+\paragraph{DDA sprehod po mreži.}
+Uporabimo varianto algoritma DDA (Digital Differential Analyzer) oz. mrežnega sledenja žarku:
+\begin{enumerate}
+  \item Začetno celico določimo z $\lfloor x_0 \rfloor, \lfloor y_0 \rfloor$, ciljno pa z $\lfloor x_1 \rfloor, \lfloor y_1 \rfloor$.
+  \item Izračunamo korake $\,\mathrm{stepX} \in \{-1,0,1\}$ in $\,\mathrm{stepY} \in \{-1,0,1\}$ glede na predznak $dx$ in $dy$.
+  \item Določimo \emph{tDelta} vrednosti, ki povedo, kolikšen porast parametra $t$ je potreben, da prečkamo eno celično mejo po $x$ oziroma $y$:
+  \[
+    t_{\Delta x} = 
+    \begin{cases}
+      |1/dx|, & dx \neq 0\\
+      \infty, & dx = 0
+    \end{cases}
+    \qquad
+    t_{\Delta y} = 
+    \begin{cases}
+      |1/dy|, & dy \neq 0\\
+      \infty, & dy = 0
+    \end{cases}
+  \]
+  \item Inicializiramo \emph{tMax} vrednosti, tj. parametrični čas do prve vertikalne oziroma horizontalne meje celice od izhodišča:
+  \[
+    t_{\max x} = 
+    \begin{cases}
+      \dfrac{(\lfloor x_0 \rfloor + 1 - x_0)}{dx}, & dx > 0\\[6pt]
+      \dfrac{(x_0 - \lfloor x_0 \rfloor)}{-dx}, & dx < 0\\[6pt]
+      \infty, & dx = 0
+    \end{cases}
+    \quad
+    t_{\max y} = 
+    \begin{cases}
+      \dfrac{(\lfloor y_0 \rfloor + 1 - y_0)}{dy}, & dy > 0\\[6pt]
+      \dfrac{(y_0 - \lfloor y_0 \rfloor)}{-dy}, & dy < 0\\[6pt]
+      \infty, & dy = 0
+    \end{cases}
+  \]
+  \item Iterativno napredujemo v smeri manjše od $t_{\max x}$ ali $t_{\max y}$ (prečkamo naslednjo mejo celice po $x$ ali $y$), s čimer posodobimo $(\mathrm{current\_x}, \mathrm{current\_y})$ ter $t_{\max x} \leftarrow t_{\max x} + t_{\Delta x}$ ali $t_{\max y} \leftarrow t_{\max y} + t_{\Delta y}$. 
+  Postopek ponavljamo, dokler ne dosežemo ciljne celice.
+\end{enumerate}
+
+\subsection{Izračun potrebnih ploščic za simulacijo radijske pokritosti}
+Simulacija radijske pokritosti in s tem povezan izračun potrebnih ploščic sta bila že implementirana v izvorni aplikaciji.
+
+Postopek določanja potrebnih ploščic za simulacijo radijske pokritosti je zasnovan podobno kot pri izračunu ploščic za vidno linijo v prejšnjem poglavju.
+Namesto izračuna med dvema točkama pa se v tem primeru upošteva celoten okoliš oddajnika znotraj izbranega polmera $r$.
+
+\paragraph{Določitev območja pokritosti.}
+Najprej se glede na izbrani polmer in geografsko širino oddajnika izračuna kotni odmik $\Delta_{\deg}$:
+\[
+\Delta_{\deg} = \frac{r}{R_\oplus}\cdot \frac{180}{\pi},
+\]
+kjer je $R_\oplus = 6\,378\,137$~m približen polmer Zemlje.  
+Na tej osnovi se določi omejitveni pravokotnik (angl.~\textit{bounding box}) z mejami:
+\[
+\varphi_{\min} = \varphi_0 - \Delta_{\deg}, \quad
+\varphi_{\max} = \varphi_0 + \Delta_{\deg}, \quad
+\lambda_{\min} = \lambda_0 - \frac{\Delta_{\deg}}{\cos(\varphi_0)}, \quad
+\lambda_{\max} = \lambda_0 + \frac{\Delta_{\deg}}{\cos(\varphi_0)}.
+\]
+Omejitve so podane v stopinjah in določajo minimalni ter maksimalni razpon zemljepisne širine in dolžine, ki ju mora sistem obdelati.
+
+\subsection{Lokacija oddajnika / sprejemnika}
+SPLAT! za določitev geografskih lokacij oddajnika in sprejemnika uporablja \textbf{.qth} datoteke (angl.~\textit{QTH files}), 
+ki vsebujejo osnovne podatke o analiziranih točkah. Datoteka je navadna besedilna datoteka v obliki ASCII in ima štiri vrstice:
+
+\begin{enumerate}
+  \item ime lokacije (npr.~oznaka oddajnika ali sprejemnika),
+  \item geografska širina (v decimalnih stopinjah, pozitivna za severno poloblo, negativna za južno),
+  \item geografska dolžina (v stopinjah zahodno od Greenwicha od 0~do~360 ali vzhodno od~0~do~--360),
+  \item višina antene nad tlemi (\textit{AGL – Above Ground Level}) v metrih ali čevljih.
+\end{enumerate}
+
+Primer datoteke:
+\begin{verbatim}
+WNJT-DT
+40.2828
+74.6864
+990.00
+\end{verbatim}
+
+V zadnji vrstici se privzeto predpostavi, da je višina podana v čevljih, razen če je za številčno vrednostjo navedena enota \texttt{m} ali beseda \texttt{meters}.  
+Latitude in longitude se lahko zapišeta v decimalnem formatu (npr.~\texttt{46.0500}) ali v formatu stopinje–minute–sekunde (npr.~\texttt{46 3 0.0}).  
+Vsak analiziran oddajnik in sprejemnik mora imeti svojo lastno \texttt{.qth} datoteko, ki jo program naloži ob izvajanju simulacije.
+
+SPLAT! pričakuje nekoliko drugačno predstavitev dolžine kot standard EPSG:4326 (WGS84), ki jo uporablja večina sodobnih GIS sistemov.  
+V EPSG:4326 so pozitivne vrednosti dolžin vzhodno od Greenwicha, negativne pa zahodno.  
+SPLAT! pa zahteva pozitivne vrednosti za zahodno poloblo (0~do~360°~W) in negativne za vzhodno (0~do~--360°~E).  
+Da zagotovimo pravilno interpretacijo, se v aplikaciji uporablja naslednja pretvorba:
+
+\[
+\lambda_{\mathrm{SPLAT}} =
+\begin{cases}
+|\lambda|, & \lambda < 0 \quad (\text{zahodne dolžine})\\[4pt]
+360 - \lambda, & \lambda \ge 0 \quad (\text{vzhodne dolžine})
+\end{cases}
+\]
+
+ali v implementacijski obliki:
+
+\begin{verbatim}
+longitude_splat = abs(longitude) if longitude < 0 else 360 - longitude
+\end{verbatim}
+
+S tem se zagotovita pravilna orientacija in skladnost z vhodnim formatom, ki ga pričakuje orodje SPLAT!.
+
+\subsection{Parametri radijskega modela}
+Poleg lokacijskih datotek \texttt{.qth} SPLAT! za vsako simulacijo uporablja tudi \textbf{.lrp} datoteko 
+(angl.~\textit{Irregular Terrain Model Parameter file}), ki določa fizikalne in statistične parametre modela 
+Longley–Rice (ITM – \textit{Irregular Terrain Model}).  
+
+Datoteka \texttt{.lrp} vsebuje osem (po izbiri devet) vrstic, pri čemer vsaka določa en parameter modela:
+
+\begin{itemize}
+  \item \textbf{Dielektrična konstanta in prevodnost tal} določata elektromagnetne lastnosti podlage; 
+  tipične vrednosti so 15 in 0.005~S/m za povprečna tla.  
+  \item \textbf{Atmosferska refrakcijska konstanta} (privzeto 301~N) opisuje ukrivljanje radijskih valov zaradi sprememb lomnega količnika v atmosferi.
+  \item \textbf{Frekvenca} določa območje uporabe modela (20~MHz–20~GHz).  
+  \item \textbf{Radijska klima} (1–7) opisuje povprečne podnebne pogoje: 
+  npr.~1~=~ekvatorialna, 5~=~celinsko zmerna (privzeto), 7~=~maritimna nad morjem.  
+  \item \textbf{Polarizacija} označuje orientacijo elektromagnetnega polja (0~=~horizontalna, 1~=~vertikalna).  
+  \item \textbf{Delež lokacij} in \textbf{delež časa} opredeljujeta statistični kriterij F($p$,~$q$), npr.~F(50,90), 
+  kar pomeni, da bo največja izguba poti nastopila v 50~\% situacij 90~\% časa.  
+  Ta kriterij je standardno uporabljen pri modelih Longley–Rice.
+\end{itemize}
+
+Če je zadnji parameter (ERP) izpuščen, SPLAT! izračuna zgolj \textit{path loss} (izgubo poti).  
+Če je vključen, pa izvede tudi izračun jakosti električnega polja in kontur pokritosti (\textit{field strength}).
+
+\paragraph{Izračun efektivne sevalne moči (ERP).}
+Vrednost ERP izračunamo na podlagi nastavitev oddajnika po formuli:
+
+\[
+\text{ERP}_{\mathrm{dBm}} = P_\mathrm{TX}(\mathrm{dBm}) + \bigl(G_\mathrm{ant}(\mathrm{dBi}) - 2.15\bigr) - L_\mathrm{izgube}(\mathrm{dB})
+\]
+
+pri čemer:
+\begin{itemize}
+  \item $P_\mathrm{TX}$ predstavlja oddajno moč oddajnika,
+  \item $G_\mathrm{ant}$ je ojačanje antene glede na izotropno anteno (v dBi),
+  \item $L_\mathrm{izgube}$ so sistemske izgube (kabli, konektorji, dušilci).
+\end{itemize}
+
+Če želimo ERP izraziti v vatih, uporabimo:
+\[
+\text{ERP}_{\mathrm{W}} = 10^{\frac{(\text{ERP}_{\mathrm{dBm}} - 30)}{10}}.
+\]
+
+Za razliko od originala moja verzija aplikacije pričakuje pridobitek antene v dBi formatu, saj tega proizvajalci večkrat definirajo v specifikacijah antene. Zato v formuli najdemo \[
+\mathrm{dBm} = \mathrm{dBi} - 2.15
+\]
+
+Tako izračunana ERP vrednost se zapiše v zadnjo vrstico \texttt{.lrp} datoteke.
+
+\subsection{Barvna lestvica za prikaz moči signala}
+Pri simulacijah radijske pokritosti SPLAT! uporablja datoteko \textbf{.dcf} (angl.~\textit{dBm Color Definition File}), 
+ki določa barvno lestvico za prikaz nivojev sprejete moči v enotah dBm.  
+Ta datoteka ni potrebna pri analizi vidne linije (LOS), saj se tam rezultati ne prikazujejo v obliki kontur, 
+temveč le kot enodimenzionalen profil terena.  
+Uporablja se torej izključno pri območnih simulacijah.
+
+\paragraph{Struktura datoteke.}
+Vsaka vrstica v datoteki \texttt{.dcf} določa razpon jakosti signala in pripadajočo barvo v RGB formatu (0–255)
+
+SPLAT! podpira do 32 različnih barvnih nivojev, ki jih interpolira med največjo in najmanjšo vrednostjo.  
+Barvna lestvica omogoča hitro vizualno interpretacijo jakosti signala na karti, kjer rdeči toni označujejo 
+najmočnejše vrednosti, modri in vijolični pa območja šibkega signala.
+
+\paragraph{Avtomatsko generiranje datoteke.}
+Za dinamično generiranje datoteke \texttt{.dcf} je v zalednem delu implementiran postopek, ki samodejno izdela vsebino na podlagi izbrane barvne karte (angl.~\textit{colormap}) iz knjižnice \texttt{Matplotlib}. Aplikacija generira 32 barvnih korakov med podanima mejama \texttt{min\_dbm} in \texttt{max\_dbm} ter jih zapiše v besedilni obliki.
+
+Tako ustvarjena vsebina se pretvori v bajtni zapis in posreduje programu SPLAT! kot vhodna datoteka. Postopek omogoča, da ima uporabnik možnost izbire različnih barvnih shem (npr.~\texttt{viridis}, \texttt{plasma}, \texttt{turbo}) ter da sistem prilagodi vizualni prikaz pokritosti brez ročnega urejanja datotek.
+
+\paragraph{Uporaba.}
+Datoteka \texttt{.dcf} se uporabi le pri simulacijah pokritosti, 
+kjer je v \texttt{.lrp} datoteki ali prek parametra \texttt{-erp} določena efektivna sevalna moč oddajnika (ERP).  
+V tem primeru SPLAT! namesto kontur izgub (\texttt{.lcf}) ali polj jakosti (\texttt{.scf}) 
+uporabi definicije barv iz \texttt{.dcf} za prikaz sprejete moči v dBm.  
+Pri analizi vidne linije (\texttt{-c}) se ta datoteka ne uporablja, saj se tam generirajo le geometrijski rezultati brez barvnih kontur.
+
+
+\subsection{Izvedba simulacije}
+
+Simulacija se izvede s klicem zunanjega programa SPLAT! oziroma SPLAT-HD, odvisno od izbrane ločljivosti terenskih podatkov. Oba programa imata enak nabor ukaznih parametrov (\textit{flagov}), ki določajo vhodne datoteke, fizične parametre modela in izhodne formate. Zaledni sistem zgradi ukazno vrstico glede na vrsto zahteve – bodisi analizo vidne linije (LOS) bodisi izračun pokritosti (Coverage Prediction) – in jo zažene v ločenem procesu znotraj začasne mape.
+
+Najpogosteje uporabljeni parametri so:
+\begin{itemize}
+  \item \texttt{-t} – pot do datoteke z oddajnikom (\texttt{tx.qth});
+  \item \texttt{-r} – pot do datoteke s sprejemnikom (\texttt{rx.qth});
+  \item \texttt{-L} – višina sprejemne antene (v metrih);
+  \item \texttt{-R} – polmer območja izračuna (v kilometrih);
+  \item \texttt{-f} – delovna frekvenca v MHz za izračun Fresnelovih con;
+  \item \texttt{-gc} – višina talne oviranosti (vegetacija, objekti);
+  \item \texttt{-db} in \texttt{-dbm} – prag in način prikaza jakosti signala;
+  \item \texttt{-kml} – izvoz v format, združljiv z orodjem Google Earth;
+  \item \texttt{-gpsav} – ohrani začasne \texttt{gnuplot} datoteke;
+  \item \texttt{-metric} – uporaba metričnega sistema enot;
+  \item \texttt{-olditm} – uporaba standardnega modela ITM (Longley–Rice).
+\end{itemize}
+
+\subsubsection*{Analiza vidne linije (LOS)}
+Pri analizi vidne linije se oceni, ali med oddajnikom in sprejemnikom obstaja neposredna vidna povezava. Program se zažene s sledečim nizom parametrov:
+\begin{verbatim}
+splat_command = [
+    (self.splat_hd_binary if request.high_resolution else self.splat_binary),
+    "-t", "tx.qth",
+    "-r", "rx.qth",
+    "-H", "normalized_terrain_height_graph.png",
+    "-d", self.tile_cache,
+    "-f", f"{request.frequency_mhz}M",
+    "-gc", str(request.clutter_height),
+    "-gpsav",
+    "-metric",
+    "-olditm",
+]
+\end{verbatim}
+
+Po zagonu se v začasni mapi ustvarijo različne izhodne datoteke, ki opisujejo profil poti med točkama: višinski profil (\texttt{profile.gp}), krivino Zemlje (\texttt{curvature.gp}), prvo Fresnelovo cono (\texttt{fresnel.gp}), referenčno višinsko linijo (\texttt{reference.gp}) in tekstovno poročilo (\texttt{tx-to-rx.txt}). Te datoteke se nato odčitajo in združijo v strukturiran JSON odgovor, ki vključuje:
+\begin{itemize}
+  \item numerične podatke o profilu terena in Fresnelovih conah,
+  \item informacijo, ali je pot optično prosta ali ovirana,
+  \item izračunano izgubo poti po modelu ITM in jakost sprejetega signala (v~dBm),
+  \item seznam geografskih koordinat ovir na poti.
+\end{itemize}
+
+Tako dobljeni rezultat se vrne odjemalcu, kjer se podatki uporabijo za vizualizacijo profila poti in označevanje ovir. Sistem vmes ohrani tudi vse začasne datoteke, kar omogoča njihovo kasnejšo analizo ali ponovno uporabo brez ponovnega izračuna.
+
+\subsubsection*{Izračun pokritosti (Coverage Prediction)}
+Pri simulaciji pokritosti se izvede prostorski izračun jakosti signala na območju okoli oddajnika v danem polmeru. Za ta namen se uporabi model Longley–Rice (ITM), ki izračuna pričakovano moč signala za vsako točko znotraj območja. Program se zažene z naslednjimi parametri:
+\begin{verbatim}
+splat_command = [
+    (self.splat_hd_binary if request.high_resolution else self.splat_binary),
+    "-t", "tx.qth",
+    "-L", str(request.rx_height),
+    "-o", "output.ppm",
+    "-d", self.tile_cache,
+    "-R", str(request.radius),
+    "-f", f"{request.frequency_mhz}M",
+    "-gc", str(request.clutter_height),
+    "-db", str(request.min_dbm),
+    "-dbm",
+    "-sc",
+    "-ngs",
+    "-N",
+    "-kml",
+    "-gpsav",
+    "-metric",
+    "-olditm",
+]
+\end{verbatim}
+
+Rezultat simulacije vključuje več datotek:
+\begin{itemize}
+  \item \texttt{output.ppm} – barvni zemljevid jakosti signala,
+  \item \texttt{output-ck.ppm} – barvna legenda (color key),
+  \item \texttt{output.kml} – prostorska referenca in obseg simuliranega območja.
+\end{itemize}
+
+Ohranil sem pretvorbo iz \texttt{.ppm} v \texttt{.tif}. Datoteka \texttt{.ppm} se prebere in pretvori v enokanalno matriko sivinskih vrednosti, medtem ko datoteka \texttt{.kml} vsebuje meje območja (koordinate sever, jug, vzhod, zahod), ki omogočajo georeferenciranje. Na podlagi teh podatkov se z uporabo knjižnice \texttt{rasterio} in funkcije \texttt{from\_bounds()} izdela GeoTIFF slika, pri čemer se ustvari barvna lestvica iz izbranega \texttt{Matplotlib} kolormap-a in dBm razpona. Nastavi se tudi vrednost \texttt{nodata} za prosojna območja in priloži GDAL-združljiv barvni zemljevid.
+
+Dodal pa sem, da se pripravljen GeoTIFF nato shrani v pomnilnik in preko funkcije \texttt{store\_tiff\_in\_geoserver()} posreduje strežniku GeoServer, kjer se zapiše kot nov \textit{coverage store} in postane dostopen prek standardnega WMS vmesnika. Istočasno se v Redis zapiše status opravila ter podatkovni ključ z rezultatom (vključno z legendo, kodirano v~\texttt{Base64}).
+
+
+\section{Čelni sistem}
+
+Čelni sistem aplikacije je zasnovan kot osrednja točka interakcije med uporabnikom in simulacijskim jedrom. Njegova glavna naloga je omogočiti enostaven vnos parametrov, pregledno upravljanje simulacij ter intuitivno vizualizacijo rezultatov na interaktivnem zemljevidu.
+
+Arhitektura čelnega sistema je v osnovi ostala podobna izvorni rešitvi, vendar je bila nadgrajena z modernejšimi tehnologijami in izboljšanimi komponentami. Za oblikovanje uporabniškega vmesnika sem namesto ogrodja Bootstrap \cite{bootstrap} uporabil ogrodje Tailwind CSS \cite{tailwindcss}, ki omogoča bolj fleksibilno in konsistentno oblikovanje ter hitrejši razvoj brez potrebe po pisanju obsežnih lastnih slogovnih datotek.
+
+Pomembna sprememba je bila tudi zamenjava knjižnice Leaflet \cite{leafletjs} z Vue MapLibre GL \cite{vueMapLibreGL}. Nova rešitev omogoča boljšo zmogljivost pri prikazu večjih količin prostorskih podatkov, boljšo podporo za delo z vektorskimi sloji ter večjo prilagodljivost pri izrisu  elementov.
+
+
+\subsection{Simulacija vidne linije}
+Pomembna funkcionalnost, ki sem jo dodal v aplikacijo, je simulacija vidne linije (angl.~\textit{Line-of-Sight}, LOS) med dvema izbranima točkama.
+
+Uporabnik lahko v čelnem sistemu izbere točki z neposrednim klikom na zemljevid ali z vnosom geografskih koordinat. Ob potrditvi aplikacija prek API-klica posreduje podatke zalednemu sistemu, ki jih obdela in pošlje programu SPLAT! za izračun vidne linije.
+
+Rezultat analize vključuje informacijo, ali med točkama obstaja neposredna vidljivost, ter profil terena na poti signala. V profilu so označene morebitne ovire, ki lahko vplivajo na kakovost povezave, vključno z zakritjem Fresnelovih con.
+
+V čelnem sistemu se rezultat prikaže v obliki grafa profila poti, ki uporabniku omogoča natančen vpogled v razmere med oddajnikom in sprejemnikom. Graf vključuje več elementov:
+\begin{itemize}
+  \item \textbf{Direktno linijo} med antenama, ki ponazarja teoretično neovirano pot signala;
+  \item \textbf{Krivino Zemlje} (angl.~\textit{Earth curvature}), ki prikazuje vpliv zemeljske ukrivljenosti na višinsko razliko med točkama;
+  \item \textbf{Fresnelovo cono} (angl.~\textit{Fresnel zone}), ki ponazarja območje, znotraj katerega morata biti prepreke minimalne za nemoteno širjenje signala;
+  \item \textbf{Fresnelovo cono 60\,\%}, ki predstavlja prag, do katerega se tolerira delno zakritje brez večjih izgub;
+  \item \textbf{Pričakovano jakost sprejetega signala (RSSI)} v~dBm, ki upošteva moč oddajnika, ojačitev anten in izgube na poti;
+  \item \textbf{Izgubo poti (Path loss)}, izraženo v~dB, ki predstavlja razliko med močjo oddanega in sprejetega signala.
+\end{itemize}
+
+Vsi podatki se prikažejo interaktivno: uporabnik lahko premika kazalec po profilu, da odčita višino terena in druge izračunane vrednosti za posamezno razdaljo. Barvna legenda jasno razlikuje posamezne plasti grafa (teren, direktno linijo, Fresnelove cone in krivino Zemlje), kar omogoča hitro vizualno oceno morebitnih ovir na poti.
+
+Graf je interaktiven in povezan z zemljevidom. Ko se uporabnik z miško premika po profilu poti, se na zemljevidu istočasno prikaže ustrezna točka na terenu. Na ta način lahko uporabnik hitro prepozna natančno lokacijo posamezne ovire ali območja, kjer signal izgubi vidno linijo.  
+Sinhronizacija med grafom in zemljevidom omogoča intuitivno analizo – uporabnik ne vidi le numeričnih vrednosti, temveč tudi prostorski kontekst, kar izboljša razumevanje rezultatov in načrtovanje postavitve anten.
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=0.8\textwidth]{fotografije/simulacija-vidnega-polja-graf.png}
+\end{center}
+\caption{Prikaz funkcionalnosti simulacije vidnega polja v čelnem sistemu aplikacije.}
+\label{simulacija-vidnega-polja-graf}
+\end{figure}
+
+Tak prikaz uporabniku omogoča takojšnje razumevanje, kako teren vpliva na vidljivost in jakost signala, ter predstavlja pomembno orodje pri načrtovanju točkovnih povezav.
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=1\textwidth]{fotografije/simulacija-vidnega-polja-celni-sistem.png}
+\end{center}
+\caption{Prikaz funkcionalnosti simulacije vidnega polja v čelnem sistemu aplikacije.}
+\label{simulacija-vidnega-polja-celni-sistem}
+\end{figure}
+
+\subsection{Simulacija radijske pokritosti}
+Funkcionalnost simulacije radijske pokritosti (angl.~\textit{Coverage Prediction}) je bila v aplikaciji že prisotna, vendar sem jo nadgradil tako, da zdaj temelji na izrisu pokritosti v obliki GeoTIFF datoteke. Po izvedeni simulaciji se GeoTIFF zapiše na strežnik GeoServer, ki služi kot namenski sistem za prostorsko vizualizacijo in shranjevanje geografskih podatkov.
+
+GeoServer omogoča dostop do prostorskih slojev prek standardiziranega protokola \textit{Web Map Service} (WMS). Namesto da bi se celoten rezultat prenesel hkrati, se uporabniku prenašajo le tiste ploščice (\textit{tiles}), ki jih trenutno vidi na zemljevidu. Tak pristop bistveno zmanjša količino prenesenih podatkov in omogoča sprotno nalaganje slojev glede na pogled uporabnika.
+
+Vsaka ploščica prikazuje del območja pokritosti, pri čemer barvna lestvica označuje jakost signala v dBm. V ozadju GeoServer samodejno razdeli GeoTIFF v mrežo ploščic in jih posreduje odjemalcu glede na izbrano povečavo (angl.~\textit{zoom level}). Na strani čelnega sistema se ploščice nalagajo dinamično kot prekrivni sloj nad osnovnim zemljevidom, uporabnik pa lahko s spremembo povečave ali premikom zemljevida hitro razišče različne dele območja.
+
+Kljub optimiziranemu prenosu ploščic je postopek še vedno časovno zahteven, zlasti pri uporabi visoko\-ločljivostnih podatkov (\texttt{splat-hd}). Ti podatki uporabljajo teren z ločljivostjo 1~ločne sekunde (približno 30~m), kar pomeni večjo količino podatkov za obdelavo in večje GeoTIFF datoteke. Pri takšnih izračunih se čas generiranja in nalaganja ploščic občutno poveča, saj se mora za vsako simulacijo prenesti in obdelati bistveno več višinskih ploščic ter ustvariti večji raster za izris pokritosti.  
+
+Ko uporabnik v čelnem sistemu odstrani posamezno plast pokritosti, se sproži tudi ustrezen API-klic v zaledni sistem, ki izvede brisanje sloja iz GeoServerja. S tem se izogne nepotrebnemu kopičenju podatkov in ohranja strežnik čist, kar prispeva k boljšemu nadzoru nad porabo prostora ter stabilnosti sistema.
+
+Tak pristop omogoča učinkovito in prilagodljivo delo z velikimi prostorskimi podatki, saj uporabnik prejme le tisti del informacij, ki jih v danem trenutku potrebuje, sistem pa hkrati samodejno skrbi za vzdrževanje in čiščenje podatkovne baze na strežniku.
+
+
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=1\textwidth]{fotografije/simulacija-radijske-pokritosti-celni-sistem.png}
+\end{center}
+\caption{Prikaz funkcionalnosti simulacije radijske pokritosti v čelnem sistemu aplikacije.}
+\label{pic1}
+\end{figure}
+
+\subsection{Iskanje optimalnega centralnega oddajnika iz seznama oddajnikov}
+Druga funkcionalnost aplikacije, ki sem jo implementiral, je \texttt{Center Node Simulator}, ki omogoča iskanje optimalne lokacije oddajnika glede na več izbranih sprejemnikov. Cilj te funkcionalnosti je določiti takšno lokacijo oddajnika iz nabora vnaprej znanih lokacij, ki zagotavlja najboljšo možno pokritost do vseh izbranih sprejemnikov.
+
+Uporabnik na zemljevidu izbere več lokacij sprejemnikov ali jih vnese z uporabo geografskih koordinat. Nato določi nabor možnih lokacij oddajnikov, ki jih bo aplikacija analizirala. Za vsako izmed teh lokacij se izvede simulacija širjenja radijskega signala, na podlagi katere se izračuna pričakovana jakost signala za vse izbrane sprejemnike.
+
+Rezultati simulacij so prikazani v pregledni tabeli, ki vsebuje kombinacije oddajnikov in sprejemnikov ter pripadajoče pričakovane vrednosti jakosti signala (RSSI) za posamezno povezavo. Uporabnik lahko podatke razvršča po posameznih stolpcih ali pa v spustnem seznamu izbere agregacijsko merilo, kot so \texttt{Average}, \texttt{Min} ali \texttt{Max}. Možnost \texttt{Average} razvrsti oddajnike glede na najvišjo povprečno vrednost RSSI, možnost \texttt{Min} glede na najnižjo izmerjeno vrednost RSSI, možnost \texttt{Max} pa glede na najvišjo vrednost RSSI. Na podlagi teh kriterijev lahko uporabnik izbere lokacijo oddajnika, ki predstavlja optimalen kompromis med pokritostjo in kakovostjo sprejema.
+
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=1\textwidth]{fotografije/simulacija-optimalne-centralne-tocke-celni-sistem.png}
+\end{center}
+\caption{Prikaz delovanja funkcionalnosti \texttt{Center Node Simulator} z izbranimi lokacijami sprejemnikov in izračunano optimalno lokacijo oddajnika.}
+\label{pic:center-node}
+\end{figure}
+
+\subsection{Iskanje optimalnega centralnega oddajnika znotraj območja}
+Tretja funkcionalnost aplikacije, ki sem jo implementiral, je \texttt{Area Center Node Simulator}, ki omogoča iskanje optimalne lokacije oddajnika znotraj uporabniško definiranega geografskega območja. Funkcionalnost je namenjena uporabnikom, ki ne želijo vnaprej določiti vseh možnih lokacij oddajnikov, temveč želijo, da aplikacija sama identificira primerne kandidatske lokacije.
+
+Uporabnik na zemljevidu določi potencialne lokacije sprejemnikov in s poligonom označi območje iskanja lokacije oddajnika. Aplikacija nato s pomočjo podatkov OpenStreetMap~\cite{openstreetmap}, pridobljenih prek vmesnika Overpass API~\cite{overpass_api}, izlušči seznam vrhov znotraj izbranega območja. Te lokacije se uporabijo kot kandidatske točke za postavitev oddajnika.
+
+Za vsako izmed pridobljenih lokacij se izvede simulacija širjenja radijskega signala, na podlagi katere se izračuna pričakovana jakost signala za vse izbrane sprejemnike. Rezultati so prikazani v pregledni tabeli, ki vsebuje kombinacije oddajnikov in sprejemnikov ter pripadajoče vrednosti jakosti signala.
+
+Na koncu uporabnik na podlagi enakih kriterijev kot pri funkcionalnosti iskanja optimalnega oddajnika iz vnaprej določenega seznama izbere lokacijo, ki predstavlja optimalno razmerje med pokritostjo in kakovostjo sprejema. Ključna razlika med obema funkcionalnostma je v načinu določanja kandidatskih lokacij oddajnika, medtem ko je postopek evalvacije in predstavitve rezultatov enak.
+
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=1\textwidth]{fotografije/simulacija-optimalne-centralne-tocke-obmocje-celni-sistem.png}
+\end{center}
+\caption{Prikaz delovanja funkcionalnosti \texttt{Area Center Node Simulator} z izbranimi sprejemniki, označenim območjem iskanja in izračunano optimalno lokacijo oddajnika.}
+\label{pic:center-node-area}
+\end{figure}

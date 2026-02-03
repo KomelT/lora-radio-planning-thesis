@@ -1,0 +1,41 @@
+\chapter{Diskusija}
+
+\section{Izboljšave}
+Med razvojem aplikacije sem se moral osredotočiti predvsem na implementacijo ključnih funkcionalnosti, ki so bile nujne za doseganje ciljev diplomske naloge. Zaradi časovnih omejitev in kompleksnosti posameznih problemov vseh načrtovanih idej ni bilo mogoče v celoti realizirati. Nekatere izboljšave bi zahtevale bistveno več razvojnega časa, druge pa uporabo dodatnih tehnologij ali podatkovnih virov, ki presegajo obseg te naloge. V nadaljevanju so zato predstavljene izbrane nadgradnje, ki bi lahko v prihodnje dodatno izboljšale zmogljivost, uporabnost in razširljivost aplikacije.
+
+\subsection{Naprednejše simulacijsko orodje}
+Ena izmed pomembnih možnih izboljšav sistema bi bila zamenjava simulacijskega orodja SPLAT! z naprednejšo rešitvijo za modeliranje širjenja radijskega signala. Čeprav SPLAT! omogoča relativno natančne izračune na podlagi topografije in Fresnelovih con, ima več omejitev, ki otežujejo njegovo uporabo v sodobnih aplikacijah.
+
+SPLAT! ne podpira uporabe različnih tipov talne in prostorske oviranosti (clutter), kot so gozdovi, urbana območja ali stavbe, temveč uporablja enoten parameter za višino ovir. Prav tako je orodje zasnovano kot enonitna (single-threaded) aplikacija, kar bistveno podaljša čas izvajanja zahtevnejših simulacij. Dodatna omejitev je podpora izključno za SRTM digitalne modele višin, brez možnosti enostavne uporabe drugih virov ali višjih ločljivosti.
+
+Z vidika integracije predstavlja SPLAT! izziv, saj je primarno namenjen uporabi prek ukazne vrstice, ponuja omejen nabor izhodnih formatov ter ni zasnovan kot knjižnica ali storitev. To zahteva obsežno obdelavo vmesnih datotek in otežuje neposredno povezovanje z aplikacijami, kakršna je razvita rešitev v tej nalogi.
+
+Uporaba sodobnejšega simulacijskega orodja, ki bi podpiralo večnitno izvajanje, napredne modele oviranosti, širši nabor vhodnih in izhodnih podatkov ter boljšo integracijo prek API-jev, bi lahko bistveno izboljšala zmogljivost, razširljivost in uporabno vrednost aplikacije.
+
+\subsection{Tridimenzionali prikaz}
+Uvedba tridimenzionalnega (3D) prikaza bi uporabniku omogočila boljšo prostorsko predstavo o razgibanosti terena in njegovem vplivu na širjenje radijskega signala. V primerjavi z obstoječim 2D prikazom bi 3D vizualizacija jasneje izpostavila višinske razlike, grebene in doline, ki pogosto predstavljajo ključne ovire pri vzpostavljanju povezav.
+
+Takšen prikaz bi olajšal prepoznavanje ovir na poti signala ter omogočil preglednejšo vizualizacijo poteka vidne linije in Fresnelovih con. Uporabnik bi tako hitreje razumel, kje pride do zakritja in kako spremembe višine ali lokacije anten vplivajo na kakovost povezave.
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=1\textwidth]{fotografije/izboljsave_3d_prikaz.png}
+\end{center}
+\caption{Posnetek zaslona 3D modela reliefa}
+\label{pic:izboljsave_3d_prikaz}
+\end{figure}
+
+\subsection{Orodna vrstica za prostorsko analizo}
+Ena izmed možnih izboljšav uporabniškega vmesnika bi bila uvedba dodatne orodne vrstice na zemljevidu, ki bi omogočala osnovna orodja za prostorsko analizo. Uporabnik bi lahko na zemljevidu risal preproste geometrijske oblike, kot so točke, linije in poligoni, z namenom boljše prostorske predstave in označevanja interesnih območij.
+
+Orodna vrstica bi vključevala tudi preprosto orodje za hitro preverjanje vidne linije (LOS) med izbranima točkama, ki bi služilo kot orientacijska pomoč pred zagonom podrobnejših simulacij. Poleg tega bi bila na voljo funkcionalnost »pipete«, ki bi omogočala neposredno zajemanje in kopiranje geografskih koordinat iz zemljevida, kar bi olajšalo natančen vnos lokacij in izmenjavo podatkov z drugimi sistemi.
+
+\subsection{Izvoz rezultatov v standardne GIS formate}
+Ena izmed pomembnih nadgradenj aplikacije bi bila razširitev možnosti izvoza rezultatov simulacij in analiz v standardne geografske podatkovne formate. Podpora formatom, kot so SHP, KML, GeoJSON in PDF, bi uporabniku omogočila nadaljnjo obdelavo podatkov v zunanjih GIS orodjih ali enostavno predstavitev rezultatov.
+
+Izvoz v vektorske in rastrske formate bi omogočil uporabo rezultatov v profesionalnih okoljih, kot so QGIS ali ArcGIS, ter lažjo izmenjavo podatkov z drugimi deležniki. PDF izvoz pa bi bil primeren za poročila, dokumentacijo in predstavitve, kjer interaktivnost ni potrebna, pomembna pa je jasna vizualna predstavitev rezultatov.
+
+\subsection{Vnos in primerjava terenskih meritev}
+Dodatna nadgradnja aplikacije bi bila možnost vnosa dejanskih terenskih meritev, s katerimi bi bilo mogoče preverjati točnost simulacijskih rezultatov. Uporabnik bi lahko v aplikacijo uvozil izmerjene vrednosti, kot je RSSI, skupaj z geografskimi koordinatami merilnih točk.
+
+Sistem bi omogočal vizualno in numerično primerjavo med izmerjenimi podatki in rezultati simulacij, na primer z izrisom meritev na zemljevidu ali z izračunom odstopanj. Na ta način bi bilo mogoče hitro prepoznati območja, kjer model odstopa od realnih razmer, ter oceniti zanesljivost simulacij v različnih okoljih.
