@@ -1,6 +1,6 @@
 \chapter{Zahteve in arhitektura aplikacije}
 
-Cilj aplikacije je ohraniti osnovno funkcionalnost izhodiščne rešitve aplikacije Meshtastic Site Planner \cite{meshtasticSitePlanner}, tj. simulacijo radijske pokritosti, ter jo razširiti z dodatnimi funkcionalnostmi.
+Cilj aplikacije je ohraniti osnovno funkcionalnost izhodiščne rešitve aplikacije Meshtastic Site Planner~\cite{meshtasticSitePlanner}, tj. simulacijo radijske pokritosti, ter jo razširiti z dodatnimi funkcionalnostmi.
 
 Razvita aplikacija mora uporabniku omogočati:
 \begin{itemize}
@@ -12,52 +12,51 @@ Razvita aplikacija mora uporabniku omogočati:
 
 Funkcionalnosti so zasnovane tako, da uporabniku omogočajo primerjavo različnih scenarijev postavitve oddajnikov ter podporo pri odločanju o optimalni konfiguraciji omrežja.
 
-\section{Arihtektura aplikacije}
+\section{Arhitektura aplikacije}
 Razvita aplikacija je zasnovana modularno in je sestavljena iz sedmih glavnih komponent:
 \begin{itemize}
     \item čelnega sistema,
     \item zalednega sistema,
-    \item simulacijskega orodja SPLAT! \cite{splatTool},
-    \item GIS-strežnika GeoServer \cite{geoserver},
-    \item podatkovnega strežnika Redis \cite{redis},
-    \item posredniški strežnik Nginx \cite{nginx},
-    \item okolje Docker \cite{docker}.
+    \item simulacijskega orodja SPLAT!~\cite{splatTool},
+    \item GIS-strežnika GeoServer~\cite{geoserver},
+    \item podatkovnega strežnika Redis~\cite{redis},
+    \item posredniškega strežnika Nginx~\cite{nginx},
+    \item okolja Docker~\cite{docker}.
 \end{itemize}
 
 % Povezava do spodnjega diagrama https://app.diagrams.net/#G1StwCVnYQ4R7P79ZIJihRiKlY891dZTAp
 \begin{figure}[htb]
-\begin{center}
+\centering
 \includegraphics[width=0.7\textwidth]{fotografije/arhitektura-aplikacije.png}
-\end{center}
 \caption{Arhitektura aplikacije za načrtovanje brezžičnih omrežij.}
 \label{fig:arhitektura-aplikacije}
 \end{figure}
 
 \subsection{Čelni del}
-Čelni del aplikacije predstavlja neposreden stik z uporabnikom in je razvit v ogrodju Vue.js \cite{vuejs} z uporabo slogovne knjižnice Tailwind CSS \cite{tailwindcss}, kar omogoča modularen razvoj in enostavno vzdrževanje uporabniškega vmesnika.
+Čelni del aplikacije predstavlja neposreden stik z uporabnikom in je razvit v ogrodju Vue.js~\cite{vuejs} z uporabo slogovne knjižnice Tailwind CSS~\cite{tailwindcss}, kar omogoča modularen razvoj in enostavno vzdrževanje uporabniškega vmesnika.
 
-V začetni fazi razvoja je bila za oblikovanje uporabljena knjižnica Bootstrap \cite{bootstrap}, ki pa je bila kasneje zamenjana z modernejšo in bolj prilagodljivo rešitvijo.
+V začetni fazi razvoja je bila za oblikovanje uporabljena knjižnica Bootstrap~\cite{bootstrap}, ki pa je bila kasneje zamenjana z modernejšo in bolj prilagodljivo rešitvijo.
 
-Osrednji element čelnega sistema je interaktivni zemljevid, zgrajen na knjižnici MapLibre GL \cite{vueMapLibreGL, maplibre}, ki omogoča vizualizacijo rezultatov simulacij v obliki kartografskih slojev, markerjev in grafičnih prikazov jakosti signala. Prvotno uporabljena knjižnica Leaflet \cite{leafletjs} se je izkazala za manj primerno pri delu z večjimi količinami prostorskih podatkov, zato je bila nadomeščena z zmogljivejšo alternativo.
+Osrednji element čelnega sistema je interaktivni zemljevid, zgrajen na knjižnici MapLibre GL~\cite{vueMapLibreGL, maplibre}, ki omogoča vizualizacijo rezultatov simulacij v obliki kartografskih slojev, markerjev in grafičnih prikazov jakosti signala. Prvotno uporabljena knjižnica Leaflet~\cite{leafletjs} se je izkazala za manj primerno pri delu z večjimi količinami prostorskih podatkov, zato je bila nadomeščena z zmogljivejšo alternativo.
 
 Poleg zemljevida čelni sistem vključuje tudi obrazce za vnos parametrov simulacij ter pregledne prikaze rezultatov. Za zagotavljanje konsistentnosti podatkov se uporablja centralizirana shramba stanja, komunikacija z zalednim sistemom pa poteka prek REST API klicev.
 
 \paragraph{Zaledni del}
-Zaledni del je implementiran v programskem jeziku Python \cite{python} z uporabo ogrodja FastAPI \cite{fastapi}. Njegova glavna naloga je obdelava uporabniških zahtev, validacija vhodnih parametrov, priprava vhodnih datotek za simulacije, izvajanje izračunov ter posredovanje rezultatov čelnemu sistemu.
+Zaledni del je implementiran v programskem jeziku Python~\cite{python} z uporabo ogrodja FastAPI~\cite{fastapi}. Njegova glavna naloga je obdelava uporabniških zahtev, validacija vhodnih parametrov, priprava vhodnih datotek za simulacije, izvajanje izračunov ter posredovanje rezultatov čelnemu sistemu.
 
 Pri zahtevnejših opravilih sistem deluje asinhrono: vsaki zahtevi dodeli enoličen identifikator, sproži simulacijo v ozadju in njen status ter vmesne rezultate začasno shrani v podatkovni strežnik Redis. Čelni sistem lahko nato periodično preverja stanje naloge in rezultate prevzame, ko so ti na voljo.
 
 \paragraph{Baza podatkov}
-Baza podatkov v arhitekturi deluje kot pomnilniški posrednik med čelnim in zalednim delom aplikacije. V njem se hranijo statusi opravil in končni rezultati simulacij. Aplikacija uporablja Redis \cite{redis}, ki zaradi arhitekture ključ--vrednost in delovanja neposredno v pomnilniku omogoča zelo hitro shranjevanje in pridobivanje podatkov, kar prispeva k odzivnosti sistema.
+Baza podatkov v arhitekturi deluje kot pomnilniški posrednik med čelnim in zalednim delom aplikacije. V njej se hranijo statusi opravil in končni rezultati simulacij. Aplikacija uporablja Redis~\cite{redis}, ki zaradi arhitekture ključ--vrednost in delovanja neposredno v pomnilniku omogoča zelo hitro shranjevanje in pridobivanje podatkov, kar prispeva k odzivnosti sistema.
 
 \paragraph{Simulacijsko orodje}
-Jedro simulacij predstavlja terminalsko orodje SPLAT! \cite{splatTool}, ki na podlagi vhodnih parametrov, kot so moč oddajnika, višina antene, frekvenca delovanja, topografija terena in drugi fizikalni dejavniki, izračuna širjenje radijskega signala. Rezultati simulacij so lahko v obliki rastrskih podatkov, profilov signalne poti ali analiz vidne linije med posameznimi točkami. Orodje uporablja modele radijskega prenosa, ki upoštevajo vpliv zakritosti in Fresnelovih con, kar omogoča realistične simulacije in napoved pokritosti obravnavanega območja.
+Jedro simulacij predstavlja terminalsko orodje SPLAT!~\cite{splatTool}, ki na podlagi vhodnih parametrov, kot so moč oddajnika, višina antene, frekvenca delovanja, topografija terena in drugi fizikalni dejavniki, izračuna širjenje radijskega signala. Rezultati simulacij so lahko v obliki rastrskih podatkov, profilov signalne poti ali analiz vidne linije med posameznimi točkami. Orodje uporablja modele radijskega prenosa, ki upoštevajo vpliv zakritosti in Fresnelovih con, kar omogoča realistične simulacije in napoved pokritosti obravnavanega območja.
 
 \paragraph{GIS strežnik}
-Rezultati, ki jih ustvari simulacijsko jedro, se nadalje obdelajo in objavijo prek GIS-strežnika GeoServer \cite{geoserver}. Izhodni podatki so pretvorjeni v format GeoTIFF in objavljeni kot spletne storitve, kot je na primer WMS. Čelni sistem te storitve nalaga dinamično in jih prikazuje kot sloje na interaktivnem zemljevidu, pri čemer se prenašajo le tisti deli podatkov, ki jih uporabnik dejansko potrebuje. Tak pristop omogoča učinkovito delo z velikimi količinami prostorskih podatkov ter zagotavlja skalabilno in zmogljivo vizualizacijo simulacij.
+Rezultati, ki jih ustvari simulacijsko jedro, se nadalje obdelajo in objavijo prek GIS-strežnika GeoServer~\cite{geoserver}. Izhodni podatki so pretvorjeni v format GeoTIFF in objavljeni kot spletne storitve, kot je na primer WMS. Čelni sistem te storitve nalaga dinamično in jih prikazuje kot sloje na interaktivnem zemljevidu, pri čemer se prenašajo le tisti deli podatkov, ki jih uporabnik dejansko potrebuje. Tak pristop omogoča učinkovito delo z velikimi količinami prostorskih podatkov ter zagotavlja skalabilno in zmogljivo vizualizacijo simulacij.
 
 \paragraph{Posredniški strežnik}
-Za usmerjanje prometa med posameznimi komponentami sistema skrbi spletni strežnik Nginx \cite{nginx}, ki deluje kot povratni posrednik (angl. \emph{reverse proxy}). Poleg strežbe statičnih datotek čelnega sistema omogoča tudi obdelavo HTTPS povezav ter optimizacijo zmogljivosti z uravnavanjem obremenitve. S tem zagotavlja stabilno, varno in učinkovito komunikacijo med uporabniki in aplikacijo.
+Za usmerjanje prometa med posameznimi komponentami sistema skrbi spletni strežnik Nginx~\cite{nginx}, ki deluje kot povratni posrednik (angl. \emph{reverse proxy}). Poleg strežbe statičnih datotek čelnega sistema omogoča tudi obdelavo HTTPS povezav ter optimizacijo zmogljivosti z uravnavanjem obremenitve. S tem zagotavlja stabilno, varno in učinkovito komunikacijo med uporabniki in aplikacijo.
 
 \paragraph{Platforma za kontejnerizacijo}
-Celotna aplikacija je zapakirana z uporabo tehnologije Docker \cite{docker}, ki omogoča zagon posameznih komponent v izoliranih in prenosljivih kontejnerjih. Vsaka storitev, kot so zaledni sistem, GeoServer in Redis, deluje v lastnem kontejnerju skupaj z vsemi potrebnimi odvisnostmi. Docker je bil uporabljen tako v fazi razvoja in testiranja kot tudi v produkcijskem okolju, kar zagotavlja konsistentnost delovanja, zmanjšuje možnost napak pri namestitvi ter omogoča enostavno posodabljanje in uvajanje novih verzij sistema.
+Celotna aplikacija je zapakirana z uporabo tehnologije Docker~\cite{docker}, ki omogoča zagon posameznih komponent v izoliranih in prenosljivih kontejnerjih. Vsaka storitev, kot so zaledni sistem, GeoServer in Redis, deluje v lastnem kontejnerju skupaj z vsemi potrebnimi odvisnostmi. Docker je bil uporabljen tako v fazi razvoja in testiranja kot tudi v produkcijskem okolju, kar zagotavlja konsistentnost delovanja, zmanjšuje možnost napak pri namestitvi ter omogoča enostavno posodabljanje in uvajanje novih verzij sistema.
