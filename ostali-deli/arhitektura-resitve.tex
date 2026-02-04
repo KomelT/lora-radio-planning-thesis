@@ -47,17 +47,17 @@ Zaledni del je implementiran v programskem jeziku Python \cite{python} z uporabo
 
 Pri zahtevnejših opravilih sistem deluje asinhrono: vsaki zahtevi dodeli enoličen identifikator, sproži simulacijo v ozadju in njen status ter vmesne rezultate začasno shrani v podatkovni strežnik Redis. Čelni sistem lahko nato periodično preverja stanje naloge in rezultate prevzame, ko so ti na voljo.
 
-\paragraph{Redis}
-Redis \cite{redis} v arhitekturi deluje kot pomnilniški posrednik med čelnim in zalednim delom aplikacije. V njem se hranijo statusi opravil in končni rezultati simulacij. Zaradi arhitekture ključ--vrednost in delovanja neposredno v pomnilniku omogoča zelo hitro shranjevanje in pridobivanje podatkov, kar bistveno prispeva k odzivnosti sistema.
+\paragraph{Baza podatkov}
+Baza podatkov v arhitekturi deluje kot pomnilniški posrednik med čelnim in zalednim delom aplikacije. V njem se hranijo statusi opravil in končni rezultati simulacij. Aplikacija uporablja Redis \cite{redis}, ki zaradi arhitekture ključ--vrednost in delovanja neposredno v pomnilniku omogoča zelo hitro shranjevanje in pridobivanje podatkov, kar prispeva k odzivnosti sistema.
 
-\paragraph{SPLAT!}
+\paragraph{Simulacijsko orodje}
 Jedro simulacij predstavlja terminalsko orodje SPLAT! \cite{splatTool}, ki na podlagi vhodnih parametrov, kot so moč oddajnika, višina antene, frekvenca delovanja, topografija terena in drugi fizikalni dejavniki, izračuna širjenje radijskega signala. Rezultati simulacij so lahko v obliki rastrskih podatkov, profilov signalne poti ali analiz vidne linije med posameznimi točkami. Orodje uporablja modele radijskega prenosa, ki upoštevajo vpliv zakritosti in Fresnelovih con, kar omogoča realistične simulacije in napoved pokritosti obravnavanega območja.
 
-\paragraph{GeoServer}
+\paragraph{GIS strežnik}
 Rezultati, ki jih ustvari simulacijsko jedro, se nadalje obdelajo in objavijo prek GIS-strežnika GeoServer \cite{geoserver}. Izhodni podatki so pretvorjeni v format GeoTIFF in objavljeni kot spletne storitve, kot je na primer WMS. Čelni sistem te storitve nalaga dinamično in jih prikazuje kot sloje na interaktivnem zemljevidu, pri čemer se prenašajo le tisti deli podatkov, ki jih uporabnik dejansko potrebuje. Tak pristop omogoča učinkovito delo z velikimi količinami prostorskih podatkov ter zagotavlja skalabilno in zmogljivo vizualizacijo simulacij.
 
-\paragraph{Nginx}
+\paragraph{Posredniški strežnik}
 Za usmerjanje prometa med posameznimi komponentami sistema skrbi spletni strežnik Nginx \cite{nginx}, ki deluje kot povratni posrednik (angl. \emph{reverse proxy}). Poleg strežbe statičnih datotek čelnega sistema omogoča tudi obdelavo HTTPS povezav ter optimizacijo zmogljivosti z uravnavanjem obremenitve. S tem zagotavlja stabilno, varno in učinkovito komunikacijo med uporabniki in aplikacijo.
 
-\paragraph{Docker}
-Celotna aplikacija je zapakirana z uporabo tehnologije Docker, ki omogoča zagon posameznih komponent v izoliranih in prenosljivih kontejnerjih. Vsaka storitev, kot so zaledni sistem, GeoServer in Redis, deluje v lastnem kontejnerju skupaj z vsemi potrebnimi odvisnostmi. Docker je bil uporabljen tako v fazi razvoja in testiranja kot tudi v produkcijskem okolju, kar zagotavlja konsistentnost delovanja, zmanjšuje možnost napak pri namestitvi ter omogoča enostavno posodabljanje in uvajanje novih verzij sistema.
+\paragraph{Platforma za kontejnerizacijo}
+Celotna aplikacija je zapakirana z uporabo tehnologije Docker \cite{docker}, ki omogoča zagon posameznih komponent v izoliranih in prenosljivih kontejnerjih. Vsaka storitev, kot so zaledni sistem, GeoServer in Redis, deluje v lastnem kontejnerju skupaj z vsemi potrebnimi odvisnostmi. Docker je bil uporabljen tako v fazi razvoja in testiranja kot tudi v produkcijskem okolju, kar zagotavlja konsistentnost delovanja, zmanjšuje možnost napak pri namestitvi ter omogoča enostavno posodabljanje in uvajanje novih verzij sistema.

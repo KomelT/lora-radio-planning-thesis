@@ -1,5 +1,34 @@
 \chapter{Eksperimentalna evalvacija}
-Z eksperimentalno evalvacijo sem želel preverit natačnost razvite aplikacije in osovnega sistema SPLAT!, ki je uporabljena za simuliranje. Evalvacija sistema je bila izvedena na podlagi dejanskih terenskih meritev v realnem okolju. Pri tem sem uporabil obstoječo infrastrukturo omrežja Meshtastic, ki jo imam v upravljanju, kar je omogočilo izvajanje ponovljivih in nadzorovanih meritev v realnih pogojih delovanja sistema.
+Celostna evalvacija implementirane rešitve bi lahko zajemala več različnih
+vidikov, med drugim preverjanje izpolnjevanja vseh funkcijskih zahtev,
+določenih v fazi načrtovanja, ocenjevanje uporabniškega vmesnika in
+uporabniške izkušnje s pomočjo uporabniške študije ter analizo učinkovitosti
+izvedbe aplikacije, kot so odzivnost sistema, čas izvajanja simulacij in
+poraba sistemskih virov.
+
+Ker takšna celovita evalvacija presega obseg diplomskega dela, se to delo
+osredotoča na eksperimentalno evalvacijo natančnosti razvite aplikacije.
+Natančnost simulacij predstavlja temeljno lastnost orodja za radijsko
+načrtovanje, saj je brez zadostnega ujemanja med simuliranimi in dejanskimi
+razmerami smiselnost nadaljnjega razvoja in uporabe aplikacije omejena.
+
+Z eksperimentalno evalvacijo sem želel preveriti natančnost razvite aplikacije
+ter temeljnega propagacijskega sistema SPLAT!, ki se uporablja za simulacijo
+radijskega širjenja. Evalvacija je bila izvedena na podlagi dejanskih
+terenskih meritev v realnem okolju, pri čemer je bila uporabljena obstoječa
+infrastruktura omrežja Meshtastic. Takšen pristop je omogočil izvajanje
+ponovljivih in nadzorovanih meritev v realnih pogojih delovanja sistema.
+
+\paragraph{Meshtastic}
+Meshtastic \cite{meshtasticFirmware} je odprtokodna platforma za vzpostavljanje nizkoenergijskih
+brezžičnih omrežij na osnovi tehnologije LoRa, ki omogoča decentralizirano
+komunikacijo med večjim številom vozlišč v obliki mrežnega omrežja
+(ang. \textit{mesh network}). Vsako vozlišče lahko deluje kot oddajnik,
+sprejemnik in posrednik sporočil, kar omogoča razširjanje dosega omrežja brez
+potrebe po centralni infrastrukturi. Sistem omogoča dostop večjemu številu
+odjemalcev ter izmenjavo telemetrijskih in lokacijskih podatkov, hkrati pa
+podpira integracijo z zunanjimi sistemi, na primer prek protokola MQTT, kar
+omogoča centralizirano zbiranje in analizo podatkov iz omrežja.
 
 \section{Strojna in programska oprema}
 Meritve so bile izvedene z uporabo odprtokodne programske opreme Meshtastic \cite{meshtasticFirmware}, ki omogoča pošiljanje lokacijskih paketov ter njihovo posredovanje prek protokola MQTT. Sprejeti podatki so se samodejno shranjevali v podatkovno bazo skupaj s pripadajočimi metapodatki, kot so čas prejema, identifikacija oddajnika in sprejemnika ter izmerjena jakost signala (RSSI).
@@ -12,7 +41,7 @@ Uporabljena strojna oprema temelji na cenovno dostopnih mikrokontrolerjih ESP32 
     \item Mobilno vozlišče \texttt{!42e27414}, ki temelji na platformi \href{https://lilygo.cc/products/t-echo-lilygo}{\texttt{LilyGo T-Echo}}, opremljeni z anteno \href{https://www.alfa.com.tw/products/aoa-868-5acm?variant=36473962922056}{\texttt{Alfa 868~MHz 5~dBi}}.
 \end{itemize}
 
-Vsa oprema deluje na ISM frekvenčem območju 868~MHz, z močjo 27~dBm. Lokacijski paketi so bili oddajani na 15~s. Vozil sem z povprečno hitrostjo 50~kmh.
+Vsa oprema deluje na ISM frekvenčem območju 868~MHz, z močjo 27~dBm. Lokacijski paketi so bili oddajani na 15~s. Vozil sem z povprečno hitrostjo 50~km/h.
 
 Pri izvajanju simulacij je bil uporabljen propagacijski model Irregular Terrain Model (ITM). Model je bil konfiguriran z uporabo parametra delež lokacijskih situacij (ang. \textit{situation fraction}) in parametra delež časa (ang. \textit{time fraction}), pri čemer sta bila oba nastavljena na vrednost 95. Takšna nastavitev pomeni, da model napoveduje radijske razmere, ki so izpolnjene v 95~\% prostorskih situacij in v 95~\% časa, kar predstavlja konzervativen pristop k ocenjevanju radijske pokritosti.
 
