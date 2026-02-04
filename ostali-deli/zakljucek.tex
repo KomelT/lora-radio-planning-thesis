@@ -1,1 +1,15 @@
 \chapter{Zaključek}
+
+V diplomski nalogi sem obravnaval problematiko načrtovanja LoRa omrežij, kjer ključno vlogo igra razumevanje širjenja radijskega signala v realnem okolju. Pregled obstoječih orodij je pokazal, da večina rešitev bodisi ponuja omejeno funkcionalnost bodisi ni prilagojena sodobnim potrebam uporabnikov, ki želijo celovit, razširljiv in odprtokoden sistem za podporo odločanju pri postavitvi omrežij.
+
+Glavni rezultat naloge je razvoj odprtokodne spletne aplikacije \textit{RF Site Planner}, ki združuje simulacijo radijske pokritosti, analizo vidne linije ter iskanje optimalnih lokacij oddajnikov v eni sami rešitvi. Aplikacija temelji na preverjenem propagacijskem orodju SPLAT!, nadgrajenem z modernim uporabniškim vmesnikom in skalabilno strežniško arhitekturo. Poseben poudarek je bil namenjen učinkoviti obdelavi prostorskih podatkov, uporabi standardnih GIS storitev ter jasni in interaktivni vizualizaciji rezultatov.
+
+Eksperimentalna evalvacija na podlagi dejanskih terenskih meritev je pokazala, da simulacije v pogojih vidne linije dosegajo zadovoljivo stopnjo ujemanja z izmerjenimi vrednostmi. V pogojih brez vidne linije so bila odstopanja večja, kar je skladno z znanimi omejitvami determinističnih propagacijskih modelov. Kljub temu rezultati potrjujejo, da je razvito orodje uporabno za praktično načrtovanje LoRa omrežij, zlasti v fazi izbire lokacij oddajnikov in grobe ocene pokritosti. Dodatno je bila prikazana možnost izboljšanja natančnosti simulacij s preprosto kalibracijo na podlagi meritev, kar odpira prostor za nadaljnje nadgradnje.
+
+Prispevek naloge ni zgolj v funkcionalni aplikaciji, temveč tudi v odprti zasnovi rešitve. Celotna izvorna koda aplikacije je javno dostopna in objavljena v repozitoriju GitHub:
+
+\begin{center}
+\url{https://github.com/KomelT/rf-site-planner}
+\end{center}
+
+S tem je omogočeno, da razvito orodje služi kot osnova za nadaljnji razvoj, prilagoditve specifičnim scenarijem uporabe ter vključevanje naprednejših propagacijskih modelov ali dodatnih podatkovnih virov. Naloga tako predstavlja praktičen prispevek k odprtokodni skupnosti in hkrati uporabno orodje za vse, ki se ukvarjajo z načrtovanjem in analizo LoRa omrežij v realnem prostoru.

@@ -190,7 +190,56 @@ Rezultati potrjujejo, da natančnost simulacij z uporabo determinističnega prop
 \end{figure}
 
 
-\section{Razprava}
-Rezultati kažejo jasno odvisnost natančnosti simulacij od propagacijskih pogojev. V primerih z vidno linijo je razlika med izmerjenimi in simuliranimi vrednostmi RSSI relativno majhna, mediane napak pa se pri obeh sprejemnikih gibljejo okoli 10~dB. To potrjuje, da uporabljen radijski model v pogojih vidne linije ustrezno opisuje osnovne propagacijske mehanizme. \cite{6618611}
+\section{Kalibracija na podlagi meritev}
 
-V primerih brez vidne linije (NLOS) so odstopanja okoli 20~dB. Simulacija pogosto podcenjuje dejanski doseg povezave, kar se odraža v negativni mediani napak in veliki razpršenosti podatkov. Posamezna odstopanja presegajo 40~dB.
+Na podlagi rezultatov eksperimentalne evalvacije je bilo ugotovljeno, da se v
+primerih brez vidne linije (NLOS) napaka simulacije sistematično spreminja z
+razdaljo med oddajnikom in sprejemnikom. Opazna je bila odvisnost med dolžino
+povezave in razliko med izmerjeno ter simulirano vrednostjo RSSI, kar kaže na
+prisotnost razdaljsko odvisnega sistematičnega odklona v uporabljenem
+propagacijskem modelu.
+
+Z namenom izboljšanja natančnosti napovedi je bila izvedena kalibracija
+simulacijskih rezultatov na podlagi dejanskih meritev. Kalibracija je temeljila
+na linearni regresiji, s katero je bila modelirana odvisnost napake simulacije
+od razdalje. Izračunani linearni regresijski model je bil nato uporabljen za
+korekcijo simuliranih vrednosti RSSI.
+
+Za preprečevanje pristranskosti in preverjanje posplošljivosti kalibracije so
+bili razpoložljivi podatki razdeljeni na dva disjunktna dela. Prva polovica
+meritev je bila uporabljena za izračun regresijskega modela, druga polovica pa
+za neodvisno evalvacijo učinkovitosti kalibracije. Meritve v obeh delih so bile
+izvedene na različnih odsekih poti, kar zagotavlja, da kalibracija ni
+prilagojena specifični trasi ali lokalnim značilnostim okolja.
+
+Na sliki~\ref{fig:7369fb6a-box-before} je prikazana porazdelitev napak
+simulacije glede na propagacijske pogoje pred izvedeno kalibracijo, medtem ko
+slika~\ref{fig:7369fb6a-box-after} prikazuje porazdelitev napak po uporabi
+kalibracijskega modela.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fotografije/!7369fb6a_diff_box_2_half.png}
+\caption{Porazdelitev napake simulacije glede na propagacijske pogoje pred kalibracijo za sprejemnik \texttt{!7369fb6a}}
+\label{fig:7369fb6a-box-before}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fotografije/!7369fb6a_diff_box_2_half_optimized.png}
+\caption{Porazdelitev napake simulacije glede na propagacijske pogoje po kalibraciji za sprejemnik \texttt{!7369fb6a}}
+\label{fig:7369fb6a-box-after}
+\end{figure}
+
+Učinek kalibracije je bil ocenjen s primerjavo porazdelitve napak pred in po kalibraciji. Škatle z brki (box-plot) jasno pokažejo, da se je po kalibraciji mediana napak v NLOS pogojih približala vrednosti 0~dB, kar kaže na zmanjšanje sistematičnega odklona simulacijskih rezultatov.
+
+Rezultati potrjujejo, da lahko preprosta linearna kalibracija na podlagi terenskih meritev izboljša ujemanje med simuliranimi in izmerjenimi vrednostmi RSSI, zlasti v NLOS pogojih, kjer osnovni propagacijski model deluje konzervativno.
+
+
+\section{Razprava}
+
+Rezultati eksperimentalne evalvacije kažejo jasno odvisnost natančnosti simulacij od propagacijskih pogojev. V primerih z vidno linijo (LOS) je razlika med izmerjenimi in simuliranimi vrednostmi RSSI relativno majhna, mediane napak pa se pri obeh sprejemnikih gibljejo okoli 10~dB. Takšna stopnja ujemanja potrjuje, da uporabljeni radijski model v pogojih vidne linije ustrezno opisuje osnovne propagacijske mehanizme, kar je skladno z ugotovitvami iz literature~\cite{6618611}.
+
+V primerih brez vidne linije (NLOS) so odstopanja bistveno večja, pri čemer se mediane napak gibljejo okoli 20~dB. Simulacija v teh pogojih pogosto podcenjuje dejanski doseg povezave, kar se odraža v negativni sistematični napaki in izrazito večji razpršenosti podatkov. Posamezna odstopanja presegajo 40~dB, kar kaže na omejitve determinističnega propagacijskega modela pri opisovanju kompleksnih mehanizmov širjenja signala v razgibanem terenu.
+
+Dodatna analiza je pokazala, da ima dolžina povezave vpliv na napako simulacije, zlasti v pogojih brez vidne linije. Z naraščajočo razdaljo med oddajnikom in sprejemnikom se sistematično povečuje absolutna napaka med izmerjenimi in simuliranimi vrednostmi RSSI, kar potrjuje negativna korelacija, ugotovljena z linearno regresijsko analizo.
