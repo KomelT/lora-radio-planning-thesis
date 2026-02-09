@@ -1,20 +1,20 @@
 \chapter{Implementacija}
 Implementacija rešitve je razdeljena na dva glavna sklopa: zaledni del in čelni del aplikacije. Zaledni del skrbi za izvajanje simulacij radijskega širjenja, obdelavo višinskih podatkov, upravljanje opravil ter komunikacijo s simulacijskim orodjem SPLAT!. Čelni del predstavlja uporabniški vmesnik, ki omogoča vnos parametrov, upravljanje simulacij in vizualizacijo rezultatov na interaktivnem zemljevidu.
 
-Jedro implementacije temelji na razširitvi obstoječe odprtokodne rešitve \texttt{Meshtastic Site Planner}~\cite{meshtasticSitePlanner}. Orodje omogoča simulacijo radijske pokritosti na podlagi orodja SPLAT!~\cite{splatTool}, vendar ne podpira analize vidne linije ter iskanja optimalnih lokacij oddajnikov. Namesto razvoja celotnega sistema iz nič sem zato izvedel vejitev (angl.~\emph{fork}) projekta in ga nadgradil z dodatnimi funkcionalnostmi ter izboljšano arhitekturo.
+Jedro implementacije temelji na razširitvi obstoječe odprtokodne rešitve \texttt{Meshtastic Site Planner}~\cite{meshtasticSitePlanner}. Orodje omogoča simulacijo radijske pokritosti na podlagi orodja SPLAT!~\cite{splatTool}, vendar ne podpira analize vidne linije ter iskanja optimalnih lokacij oddajnikov. Namesto razvoja celotnega sistema iz nič je bila izvedena vejitev (angl.~\emph{fork}) projekta in rešitev je bila nadgrajena z dodatnimi funkcionalnostmi ter izboljšano arhitekturo.
 
 Projekt \texttt{Meshtastic Site Planner} je licenciran pod licenco GPL~3~\cite{gpl3}, ki dovoljuje uporabo, spreminjanje in distribucijo programske opreme, ob pogoju, da so tudi izpeljana dela objavljena pod isto licenco. Tak licenčni model zagotavlja odprtost izvorne kode ter omogoča, da so vse nadaljnje izboljšave dostopne širši skupnosti. Izbrani pristop je omogočil hitrejši razvoj ter osredotočenost na razširitve sistema, kot so izboljšan prikaz rezultatov, pohitritev sistema ter dodajanje metod za iskanje optimalnih lokacij oddajnikov. Za prikaz rezultatov simulacij radijske pokritosti je v sistem vključen strežnik GeoServer, ki omogoča postopno nalaganje prostorskih podatkov prek vmesnika WMS ter s tem zmanjša obremenitev odjemalca.
 
 \section{Zaledni del}
 Zaledni del je implementiran v programskem jeziku Python~\cite{python}, pri čemer je za gradnjo spletnega vmesnika uporabljeno ogrodje FastAPI~\cite{fastapi}. Ogrodje omogoča enostavno vzpostavitev HTTP povezav ter olajša dodajanje in vzdrževanje funkcionalnosti REST API, ki so ključne za komunikacijo med čelnim in zalednim delom aplikacije.
 
-Sistemu sem dodal dve novi API poti (angl.~\emph{routes}):
+Sistemu sta bili dodani dve novi API poti (angl.~\emph{routes}):
 \begin{itemize}
     \item \textbf{POST /los} -- sproži simulacijo vidne linije (angl.~\emph{line-of-sight}) med dvema točkama,
     \item \textbf{DELETE /coverage/:task\_id} -- omogoča brisanje shranjenih rezultatov pokritosti.
 \end{itemize}
 
-Dve obstoječi poti sem preimenoval, da sledita poenotenemu poimenovanju:
+Dve obstoječi poti sta bili preimenovani, da sledita poenotenemu poimenovanju:
 \begin{itemize}
     \item \textbf{POST /predict} $\rightarrow$ \textbf{POST /coverage} -- sproži simulacijo radijske pokritosti glede na parametre oddajnika,
     \item \textbf{/status/:task\_id} $\rightarrow$ \textbf{GET /task} -- vrne stanje naloge in (ko so pripravljeni) dostop do rezultatov.
@@ -39,7 +39,7 @@ Podatki misije SRTM so na voljo v dveh ločljivostnih različicah:
 
 Orodje \texttt{srtm2sdf} omogoča pretvorbo podatkov SRTM3, medtem ko \texttt{srtm2sdf-hd} omogoča pretvorbo visoko ločljivostnih podatkov SRTM1 v izboljšan format \texttt{.sdf} z oznako \texttt{-hd}. Večja prostorska natančnost je posebej pomembna pri razgibanem terenu ali pri analizah na krajših razdaljah, kjer lahko že manjše razlike v višinskih podatkih vplivajo na rezultate simulacije.
 
-V začetni fazi je zaledni del aplikacije samodejno izvajal pretvorbo iz \texttt{.hgt} v \texttt{.sdf}, kar je omogočalo izvajanje simulacij kjerkoli na svetu, vendar je postopek podaljšal čas obdelave in poslabšal uporabniško izkušnjo. Za optimizacijo sem uporabil vir \texttt{viewfinderpanoramas.org}~\cite{viewfinder}, ki ponuja že pripravljene in preverjene višinske ploščice v ustreznem formatu. Ploščice za območje Evrope sem prenesel in shranil na lasten strežnik, od koder jih aplikacija po potrebi samodejno pridobi in uporabi pri izvajanju simulacij. S tem se zmanjša zakasnitev ob začetku izračuna ter izboljša odzivnost sistema pri ponavljajočih se simulacijah.
+V začetni fazi je zaledni del aplikacije samodejno izvajal pretvorbo iz \texttt{.hgt} v \texttt{.sdf}, kar je omogočalo izvajanje simulacij kjerkoli na svetu, vendar je postopek podaljšal čas obdelave in poslabšal uporabniško izkušnjo. Za optimizacijo je bil uporabljen vir \texttt{viewfinderpanoramas.org}~\cite{viewfinder}, ki ponuja že pripravljene in preverjene višinske ploščice v ustreznem formatu. Ploščice za območje Evrope so bile prenesene in shranjene na lasten strežnik, od koder jih aplikacija po potrebi samodejno pridobi in uporabi pri izvajanju simulacij. S tem se zmanjša zakasnitev ob začetku izračuna ter izboljša odzivnost sistema pri ponavljajočih se simulacijah.
 
 \subsection{Določanje potrebnih višinskih ploščic za simulacije}
 
@@ -47,7 +47,7 @@ Za izvajanje simulacij SPLAT! potrebuje ustrezen nabor višinskih ploščic (\te
 
 Na podlagi izbranega polmera in geografske lokacije oddajnika se najprej določi omejitveni pravokotnik (angl.~\emph{bounding box}), ki zajema celotno območje simulacije. Nato se iz tega območja izpelje seznam višinskih ploščic, ki jih je treba prenesti in vključiti v izračun. Tak pristop omogoča, da se obdelujejo le nujno potrebni podatki, s čimer se zmanjša količina prenesenih višinskih podatkov in pospeši priprava simulacije.
 
-Ker izvorna aplikacija ni podpirala analize vidne linije (LOS), sem obstoječi mehanizem razširil tudi za ta primer. Pri simulaciji vidne linije je območje interesa omejeno zgolj na zveznico med oddajnikom in sprejemnikom, zato je mogoče nabor potrebnih ploščic dodatno zožiti. Namesto celotnega območja okoli oddajnika se določijo le tiste ploščice, ki jih prečka povezovalna linija med obema točkama.
+Ker izvorna aplikacija ni podpirala analize vidne linije (LOS), je bil obstoječi mehanizem razširjen tudi za ta primer. Pri simulaciji vidne linije je območje interesa omejeno zgolj na zveznico med oddajnikom in sprejemnikom, zato je mogoče nabor potrebnih ploščic dodatno zožiti. Namesto celotnega območja okoli oddajnika se določijo le tiste ploščice, ki jih prečka povezovalna linija med obema točkama.
 
 S tem je bil obstoječi sistem za določanje višinskih ploščic ponovno uporabljen in prilagojen tudi za simulacijo vidne linije, kar omogoča učinkovitejšo rabo podatkov ter krajši čas priprave izračuna, zlasti pri točkovnih analizah na večjih razdaljah.
 
@@ -254,22 +254,22 @@ Rezultat simulacije vključuje več datotek:
   \item \texttt{output.kml} – prostorska referenca in obseg simuliranega območja.
 \end{itemize}
 
-Ohranil sem pretvorbo iz \texttt{.ppm} v \texttt{.tif}. Datoteka \texttt{.ppm} se prebere in pretvori v enokanalno matriko sivinskih vrednosti, medtem ko datoteka \texttt{.kml} vsebuje meje območja (koordinate sever, jug, vzhod, zahod), ki omogočajo georeferenciranje. Na podlagi teh podatkov se z uporabo knjižnice \texttt{rasterio} in funkcije \texttt{from\_bounds()} izdela GeoTIFF slika, pri čemer se ustvari barvna lestvica iz izbranega \texttt{Matplotlib} kolormap-a in dBm razpona. Nastavi se tudi vrednost \texttt{nodata} za prosojna območja in priloži GDAL-združljiv barvni zemljevid.
+Ohranjena je pretvorba iz \texttt{.ppm} v \texttt{.tif}. Datoteka \texttt{.ppm} se prebere in pretvori v enokanalno matriko sivinskih vrednosti, medtem ko datoteka \texttt{.kml} vsebuje meje območja (koordinate sever, jug, vzhod, zahod), ki omogočajo georeferenciranje. Na podlagi teh podatkov se z uporabo knjižnice \texttt{rasterio} in funkcije \texttt{from\_bounds()} izdela GeoTIFF slika, pri čemer se ustvari barvna lestvica iz izbranega \texttt{Matplotlib} kolormap-a in dBm razpona. Nastavi se tudi vrednost \texttt{nodata} za prosojna območja in priloži GDAL-združljiv barvni zemljevid.
 
-Dodal pa sem, da se pripravljen GeoTIFF nato shrani v pomnilnik in preko funkcije \texttt{store\_tiff\_in\_geoserver()} posreduje strežniku GeoServer, kjer se zapiše kot nov \emph{coverage store} in postane dostopen prek standardnega WMS vmesnika. Istočasno se v Redis zapiše status opravila ter podatkovni ključ z rezultatom (vključno z legendo, kodirano v~\texttt{Base64}).
+Dodana je možnost, da se pripravljen GeoTIFF nato shrani v pomnilnik in preko funkcije \texttt{store\_tiff\_in\_geoserver()} posreduje strežniku GeoServer, kjer se zapiše kot nov \emph{coverage store} in postane dostopen prek standardnega WMS vmesnika. Istočasno se v Redis zapiše status opravila ter podatkovni ključ z rezultatom (vključno z legendo, kodirano v~\texttt{Base64}).
 
 
 \section{Čelni sistem}
 
 Čelni sistem aplikacije je zasnovan kot osrednja točka interakcije med uporabnikom in simulacijskim jedrom. Njegova glavna naloga je omogočiti enostaven vnos parametrov, pregledno upravljanje simulacij ter intuitivno vizualizacijo rezultatov na interaktivnem zemljevidu.
 
-Arhitektura čelnega sistema je v osnovi ostala podobna izvorni rešitvi \emph{Meshtastic Site Planner}~\cite{meshtasticSitePlanner}, vendar je bila nadgrajena z modernejšimi tehnologijami in izboljšanimi komponentami. Za oblikovanje uporabniškega vmesnika sem namesto ogrodja Bootstrap~\cite{bootstrap} uporabil ogrodje Tailwind CSS~\cite{tailwindcss}, ki omogoča bolj fleksibilno in konsistentno oblikovanje ter hitrejši razvoj brez potrebe po pisanju obsežnih lastnih slogovnih datotek.
+Arhitektura čelnega sistema je v osnovi ostala podobna izvorni rešitvi \emph{Meshtastic Site Planner}~\cite{meshtasticSitePlanner}, vendar je bila nadgrajena z modernejšimi tehnologijami in izboljšanimi komponentami. Za oblikovanje uporabniškega vmesnika je bilo namesto ogrodja Bootstrap~\cite{bootstrap} uporabljeno ogrodje Tailwind CSS~\cite{tailwindcss}, ki omogoča bolj fleksibilno in konsistentno oblikovanje ter hitrejši razvoj brez potrebe po pisanju obsežnih lastnih slogovnih datotek.
 
 Pomembna sprememba je bila tudi zamenjava knjižnice Leaflet~\cite{leafletjs} z Vue MapLibre GL~\cite{vueMapLibreGL}. Nova rešitev omogoča boljšo zmogljivost pri prikazu večjih količin prostorskih podatkov, boljšo podporo za delo z vektorskimi sloji ter večjo prilagodljivost pri izrisu elementov.
 
 
 \subsection{Simulacija vidne linije}
-Pomembna funkcionalnost, ki sem jo dodal v aplikacijo, je simulacija vidne linije (angl.~\emph{Line-of-Sight}, LOS) med dvema izbranima točkama.
+Pomembna funkcionalnost, ki je bila dodana v aplikacijo, je simulacija vidne linije (angl.~\emph{Line-of-Sight}, LOS) med dvema izbranima točkama.
 
 Uporabnik lahko v čelnem sistemu izbere točki z neposrednim klikom na zemljevid ali z vnosom geografskih koordinat. Ob potrditvi aplikacija prek API-klica posreduje podatke zalednemu sistemu, ki jih obdela in pošlje programu SPLAT! za izračun vidne linije.
 
@@ -307,7 +307,7 @@ Tak prikaz uporabniku omogoča takojšnje razumevanje, kako teren vpliva na vidl
 \end{figure}
 
 \subsection{Simulacija radijske pokritosti}
-Funkcionalnost simulacije radijske pokritosti (angl.~\emph{Coverage Prediction}) je bila v aplikaciji že prisotna, vendar sem jo nadgradil tako, da zdaj temelji na izrisu pokritosti v obliki GeoTIFF datoteke. Po izvedeni simulaciji se GeoTIFF zapiše na strežnik GeoServer, ki služi kot namenski sistem za prostorsko vizualizacijo in shranjevanje geografskih podatkov.
+Funkcionalnost simulacije radijske pokritosti (angl.~\emph{Coverage Prediction}) je bila v aplikaciji že prisotna, vendar je bila nadgrajena tako, da zdaj temelji na izrisu pokritosti v obliki GeoTIFF datoteke. Po izvedeni simulaciji se GeoTIFF zapiše na strežnik GeoServer, ki služi kot namenski sistem za prostorsko vizualizacijo in shranjevanje geografskih podatkov.
 
 GeoServer omogoča dostop do prostorskih slojev prek standardiziranega protokola \emph{Web Map Service} (WMS). Namesto da bi se celoten rezultat prenesel hkrati, se uporabniku prenašajo le tiste ploščice (\emph{tiles}), ki jih trenutno vidi na zemljevidu. Tak pristop bistveno zmanjša količino prenesenih podatkov in omogoča sprotno nalaganje slojev glede na pogled uporabnika.
 
@@ -329,7 +329,7 @@ Tak pristop omogoča učinkovito in prilagodljivo delo z velikimi prostorskimi p
 \end{figure}
 
 \subsection{Iskanje optimalnega centralnega oddajnika iz seznama oddajnikov}
-Druga funkcionalnost aplikacije, ki sem jo implementiral, je \texttt{Center Node Simulator}, ki omogoča iskanje optimalne lokacije oddajnika glede na več izbranih sprejemnikov. Cilj te funkcionalnosti je določiti takšno lokacijo oddajnika iz nabora vnaprej znanih lokacij, ki zagotavlja najboljšo možno pokritost do vseh izbranih sprejemnikov.
+Druga funkcionalnost aplikacije, ki je bila implementirana, je \texttt{Center Node Simulator}, ki omogoča iskanje optimalne lokacije oddajnika glede na več izbranih sprejemnikov. Cilj te funkcionalnosti je določiti takšno lokacijo oddajnika iz nabora vnaprej znanih lokacij, ki zagotavlja najboljšo možno pokritost do vseh izbranih sprejemnikov.
 
 Uporabnik na zemljevidu izbere več lokacij sprejemnikov ali jih vnese z uporabo geografskih koordinat. Nato določi nabor možnih lokacij oddajnikov, ki jih bo aplikacija analizirala. Za vsako izmed teh lokacij se izvede simulacija širjenja radijskega signala, na podlagi katere se izračuna pričakovana jakost signala za vse izbrane sprejemnike.
 
@@ -344,7 +344,7 @@ Rezultati simulacij so prikazani v pregledni tabeli, ki vsebuje kombinacije odda
 \end{figure}
 
 \subsection{Iskanje optimalnega centralnega oddajnika znotraj območja}
-Tretja funkcionalnost aplikacije, ki sem jo implementiral, je \texttt{Area Center Node Simulator}, ki omogoča iskanje optimalne lokacije oddajnika znotraj uporabniško definiranega geografskega območja. Funkcionalnost je namenjena uporabnikom, ki ne želijo vnaprej določiti vseh možnih lokacij oddajnikov, temveč želijo, da aplikacija sama identificira primerne kandidatske lokacije.
+Tretja funkcionalnost aplikacije, ki je bila implementirana, je \texttt{Area Center Node Simulator}, ki omogoča iskanje optimalne lokacije oddajnika znotraj uporabniško definiranega geografskega območja. Funkcionalnost je namenjena uporabnikom, ki ne želijo vnaprej določiti vseh možnih lokacij oddajnikov, temveč želijo, da aplikacija sama identificira primerne kandidatske lokacije.
 
 Uporabnik na zemljevidu določi potencialne lokacije sprejemnikov in s poligonom označi območje iskanja lokacije oddajnika. Aplikacija nato s pomočjo podatkov OpenStreetMap~\cite{openstreetmap}, pridobljenih prek vmesnika Overpass API~\cite{overpass_api}, izlušči seznam vrhov znotraj izbranega območja. V podatkovnem modelu OpenStreetMap so vrhovi označeni z oznako \texttt{natural=peak}. Te lokacije se uporabijo kot kandidatske točke za postavitev oddajnika.
 
