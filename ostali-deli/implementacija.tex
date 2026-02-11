@@ -138,31 +138,22 @@ pri čemer:
 \text{ERP}_{\mathrm{W}} = 10^{\frac{(\text{ERP}_{\mathrm{dBm}} - 30)}{10}}.
 \]
 
-Za razliko od izvorne rešitve moja različica aplikacije pričakuje podatek o dobitku antene v obliki dBi, saj proizvajalci ta podatek pogosto navajajo v tehničnih specifikacijah. Zato je v formuli uporabljena pretvorba:
+Za razliko od izvorne rešitve različica aplikacije pričakuje podatek o dobitku antene v obliki dBi, saj proizvajalci ta podatek pogosto navajajo v tehničnih specifikacijah. Zato je v formuli uporabljena pretvorba:
 \[
 \mathrm{dBd} = \mathrm{dBi} - 2.15
 \]
 
-Konstanta 2.15~dB predstavlja razliko med izotropno referenčno anteno in dipolno referenčno anteno. 
-Pridobitek antene je v praksi pogosto podan v enotah dBi, kjer je referenca idealna izotropna antena, ki enakomerno seva v vse smeri. 
-Model Longley--Rice in s tem orodje SPLAT! pa uporabljata efektivno sevalno moč (ERP), ki je definirana glede na idealni polvalovni dipol (dBd). 
-Razmerje med obema referencama je 2.15~dB, zato je za pretvorbo iz dBi v dBd potrebno odšteti 2.15~dB.
+Konstanta 2.15~dB predstavlja razliko med izotropno referenčno anteno in dipolno referenčno anteno. Pridobitek antene je v praksi pogosto podan v enotah dBi, kjer je referenca idealna izotropna antena, ki enakomerno seva v vse smeri. Model Longley--Rice in s tem orodje SPLAT! pa uporabljata efektivno sevalno moč (ERP), ki je definirana glede na idealni polvalovni dipol (dBd). Razmerje med obema referencama je 2.15~dB, zato je za pretvorbo iz dBi v dBd potrebno odšteti 2.15~dB.
 
 Tako izračunana ERP vrednost se zapiše v zadnjo vrstico \texttt{.lrp} datoteke.
 
 \subsection{Barvna lestvica za prikaz moči signala}
-Pri simulacijah radijske pokritosti SPLAT! uporablja datoteko \textbf{.dcf} (angl.~\emph{dBm Color Definition File}), 
-ki določa barvno lestvico za prikaz nivojev sprejete moči v enotah dBm.  
-Ta datoteka ni potrebna pri analizi vidne linije (LOS), saj se tam rezultati ne prikazujejo v obliki kontur, 
-temveč le kot enodimenzionalen profil terena.  
-Uporablja se torej izključno pri območnih simulacijah.
+Pri simulacijah radijske pokritosti SPLAT! uporablja datoteko \textbf{.dcf} (angl.~\emph{dBm Color Definition File}), ki določa barvno lestvico za prikaz nivojev sprejete moči v enotah dBm. Ta datoteka ni potrebna pri analizi vidne linije (LOS), saj se tam rezultati ne prikazujejo v obliki kontur, temveč le kot enodimenzionalen profil terena. Uporablja se torej izključno pri območnih simulacijah.
 
 \paragraph{Struktura datoteke.}
 Vsaka vrstica v datoteki \texttt{.dcf} določa razpon jakosti signala in pripadajočo barvo v RGB formatu (0–255).
 
-SPLAT! podpira do 32 različnih barvnih nivojev, ki jih interpolira med največjo in najmanjšo vrednostjo.  
-Barvna lestvica omogoča hitro vizualno interpretacijo jakosti signala na karti, kjer rdeči toni označujejo 
-najmočnejše vrednosti, modri in vijolični pa območja šibkega signala.
+SPLAT! podpira do 32 različnih barvnih nivojev, ki jih interpolira med največjo in najmanjšo vrednostjo. Barvna lestvica omogoča hitro vizualno interpretacijo jakosti signala na karti, kjer rdeči toni označujejo najmočnejše vrednosti, modri in vijolični pa območja šibkega signala.
 
 \paragraph{Avtomatsko generiranje datoteke.}
 Za dinamično generiranje datoteke \texttt{.dcf} je v zalednem delu implementiran postopek, ki samodejno izdela vsebino na podlagi izbrane barvne karte (angl.~\emph{colormap}) iz knjižnice \texttt{Matplotlib}. Aplikacija generira 32 barvnih korakov med podanima mejama \texttt{min\_dbm} in \texttt{max\_dbm} ter jih zapiše v besedilni obliki.
@@ -170,11 +161,7 @@ Za dinamično generiranje datoteke \texttt{.dcf} je v zalednem delu implementira
 Tako ustvarjena vsebina se pretvori v bajtni zapis in posreduje programu SPLAT! kot vhodna datoteka. Postopek omogoča, da ima uporabnik možnost izbire različnih barvnih shem (npr.~\texttt{viridis}, \texttt{plasma}, \texttt{turbo}) ter da sistem prilagodi vizualni prikaz pokritosti brez ročnega urejanja datotek.
 
 \paragraph{Uporaba.}
-Datoteka \texttt{.dcf} se uporabi le pri simulacijah pokritosti, 
-kjer je v \texttt{.lrp} datoteki ali prek parametra \texttt{-erp} določena efektivna sevalna moč oddajnika (ERP).  
-V tem primeru SPLAT! namesto kontur izgub (\texttt{.lcf}) ali polj jakosti (\texttt{.scf}) 
-uporabi definicije barv iz \texttt{.dcf} za prikaz sprejete moči v dBm.  
-Pri analizi vidne linije (\texttt{-c}) se ta datoteka ne uporablja, saj se tam generirajo le geometrijski rezultati brez barvnih kontur.
+Datoteka \texttt{.dcf} se uporabi le pri simulacijah pokritosti, kjer je v \texttt{.lrp} datoteki ali prek parametra \texttt{-erp} določena efektivna sevalna moč oddajnika (ERP). V tem primeru SPLAT! namesto kontur izgub (\texttt{.lcf}) ali polj jakosti (\texttt{.scf}) uporabi definicije barv iz \texttt{.dcf} za prikaz sprejete moči v dBm. Pri analizi vidne linije (\texttt{-c}) se ta datoteka ne uporablja, saj se tam generirajo le geometrijski rezultati brez barvnih kontur.
 
 
 \subsection{Izvedba simulacije}

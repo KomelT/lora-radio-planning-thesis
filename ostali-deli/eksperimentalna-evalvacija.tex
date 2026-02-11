@@ -1,34 +1,13 @@
 \chapter{Eksperimentalna evalvacija}
-Celostna evalvacija implementirane rešitve bi lahko zajemala več različnih
-vidikov, med drugim preverjanje izpolnjevanja vseh funkcijskih zahtev,
-določenih v fazi načrtovanja, ocenjevanje uporabniškega vmesnika in
-uporabniške izkušnje s pomočjo uporabniške študije ter analizo učinkovitosti
-izvedbe aplikacije, kot so odzivnost sistema, čas izvajanja simulacij in
-poraba sistemskih virov.
+Celostna evalvacija implementirane rešitve bi lahko zajemala več različnih vidikov, med drugim preverjanje izpolnjevanja vseh funkcijskih zahtev, določenih v fazi načrtovanja, ocenjevanje uporabniškega vmesnika in uporabniške izkušnje s pomočjo uporabniške študije ter analizo učinkovitosti izvedbe aplikacije, kot so odzivnost sistema, čas izvajanja simulacij in poraba sistemskih virov.
 
-Ker takšna celovita evalvacija presega obseg diplomskega dela, se to delo
-osredotoča na eksperimentalno evalvacijo natančnosti razvite aplikacije.
-Natančnost simulacij predstavlja temeljno lastnost orodja za radijsko
-načrtovanje, saj je brez zadostnega ujemanja med simuliranimi in dejanskimi
-razmerami smiselnost nadaljnjega razvoja in uporabe aplikacije omejena.
+Ker takšna celovita evalvacija presega obseg diplomskega dela, se to delo osredotoča na eksperimentalno evalvacijo natančnosti razvite aplikacije. Natančnost simulacij predstavlja temeljno lastnost orodja za radijsko
 
-Z eksperimentalno evalvacijo je bila preverjena natančnost razvite aplikacije
-ter temeljnega propagacijskega sistema SPLAT!, ki se uporablja za simulacijo
-radijskega širjenja. Evalvacija je bila izvedena na podlagi dejanskih
-terenskih meritev v realnem okolju, pri čemer je bila uporabljena obstoječa
-infrastruktura omrežja Meshtastic. Takšen pristop je omogočil izvajanje
-ponovljivih in nadzorovanih meritev v realnih pogojih delovanja sistema.
+Z eksperimentalno evalvacijo je bila preverjena natančnost razvite aplikacije ter temeljnega propagacijskega sistema SPLAT!, ki se uporablja za simulacijo radijskega širjenja. Evalvacija je bila izvedena na podlagi dejanskih terenskih meritev v realnem okolju, pri čemer je bila uporabljena obstoječa infrastruktura omrežja Meshtastic. Takšen pristop je omogočil izvajanje ponovljivih in nadzorovanih meritev v realnih pogojih delovanja sistema.
 
 \paragraph{Meshtastic}
-Meshtastic~\cite{meshtasticFirmware} je odprtokodna platforma za vzpostavljanje nizkoenergijskih
-brezžičnih omrežij na osnovi tehnologije LoRa, ki omogoča decentralizirano
-komunikacijo med večjim številom vozlišč v obliki mrežnega omrežja
-(angl. \emph{mesh network}). Vsako vozlišče lahko deluje kot oddajnik,
-sprejemnik in posrednik sporočil, kar omogoča razširjanje dosega omrežja brez
-potrebe po centralni infrastrukturi. Sistem omogoča dostop večjemu številu
-odjemalcev ter izmenjavo telemetrijskih in lokacijskih podatkov, hkrati pa
-podpira integracijo z zunanjimi sistemi, na primer prek protokola MQTT, kar
-omogoča centralizirano zbiranje in analizo podatkov iz omrežja.
+Meshtastic~\cite{meshtasticFirmware} je odprtokodna platforma za vzpostavljanje nizkoenergijskih brezžičnih omrežij na osnovi tehnologije LoRa, ki omogoča decentralizirano komunikacijo med večjim številom vozlišč v mrežnem tipu omrežja (angl. \emph{mesh network}). Vsako vozlišče lahko deluje kot oddajnik, sprejemnik in posrednik sporočil, kar omogoča razširjanje dosega omrežja brez potrebe po centralni infrastrukturi. Sistem omogoča dostop večjemu številu odjemalcev ter izmenjavo telemetrijskih in lokacijskih podatkov, hkrati pa
+podpira integracijo z zunanjimi sistemi, na primer prek protokola MQTT, kar omogoča centralizirano zbiranje in analizo podatkov iz omrežja.
 
 \section{Strojna in programska oprema}
 Meritve so bile izvedene z uporabo odprtokodne programske opreme Meshtastic~\cite{meshtasticFirmware}, ki omogoča pošiljanje lokacijskih paketov ter njihovo posredovanje prek protokola MQTT. Sprejeti podatki so se samodejno shranjevali v podatkovno bazo skupaj s pripadajočimi metapodatki, kot so čas prejema, identifikacija oddajnika in sprejemnika ter izmerjena jakost signala (RSSI).
@@ -83,16 +62,9 @@ Na ta način je bila vzpostavljena celovita zbirka merilnih podatkov, ki je omog
 
 
 \section{Rezultati}
-Sprejemnik \texttt{!7369fb6a} je v času meritev skupno sprejel 434 paketov,
-medtem ko je nižje ležeči sprejemnik \texttt{!75f19024} sprejel 363 paketov.
-Razlika v številu sprejetih paketov je posledica različne višine namestitve
-anten in posledično drugačnih propagacijskih pogojev.
+Sprejemnik \texttt{!7369fb6a} je v času meritev skupno sprejel 434 paketov, medtem ko je nižje ležeči sprejemnik \texttt{!75f19024} sprejel 363 paketov. Razlika v številu sprejetih paketov je posledica različne višine namestitve anten in posledično drugačnih propagacijskih pogojev.
 
-Sliki~\ref{fig:7369fb6a-val} in~\ref{fig:75f19024-val} prikazujeta primerjavo
-izmerjenih in simuliranih vrednosti RSSI za oba sprejemnika. Opaziti je, da
-simulacija v splošnem pravilno sledi trendu sprememb jakosti signala glede na
-položaj mobilnega vozlišča, vendar v določenih odsekih izrazito podcenjuje ali
-precenjuje dejansko izmerjene vrednosti.
+Sliki~\ref{fig:7369fb6a-val} in~\ref{fig:75f19024-val} prikazujeta primerjavo izmerjenih in simuliranih vrednosti RSSI za oba sprejemnika. Opaziti je, da simulacija v splošnem pravilno sledi trendu sprememb jakosti signala glede na položaj mobilnega vozlišča, vendar v določenih odsekih izrazito podcenjuje ali precenjuje dejansko izmerjene vrednosti.
 
 \begin{figure}[H]
 \centering
@@ -112,11 +84,9 @@ Razlika med izmerjeno in simulirano jakostjo signala je bila definirana kot
 \[
 \Delta RSSI = RSSI_{\text{meritev}} - RSSI_{\text{simulacija}},
 \]
-kjer negativna vrednost pomeni, da je simulacija podcenila dejansko izmerjeno
-jakost signala, pozitivna vrednost pa pomeni njeno precenjevanje.
+kjer negativna vrednost pomeni, da je simulacija podcenila dejansko izmerjeno jakost signala, pozitivna vrednost pa pomeni njeno precenjevanje.
 
-Z namenom podrobnejše analize so bili podatki razdeljeni v pet kategorij glede na
-geometrijske in propagacijske pogoje med oddajnikom in sprejemnikom:
+Z namenom podrobnejše analize so bili podatki razdeljeni v pet kategorij glede na geometrijske in propagacijske pogoje med oddajnikom in sprejemnikom:
 
 \begin{itemize}
     \item \textbf{Vsi paketi} – združena napaka vseh prejetih paketov, ne glede na propagacijske pogoje.
@@ -185,30 +155,13 @@ Rezultati potrjujejo, da natančnost simulacij z uporabo determinističnega prop
 
 \section{Kalibracija na podlagi meritev}
 
-Na podlagi rezultatov eksperimentalne evalvacije je bilo ugotovljeno, da se v
-primerih brez vidne linije (NLOS) napaka simulacije sistematično spreminja z
-razdaljo med oddajnikom in sprejemnikom. Opazna je bila odvisnost med dolžino
-povezave in razliko med izmerjeno ter simulirano vrednostjo RSSI, kar kaže na
-prisotnost razdaljsko odvisnega sistematičnega odklona v uporabljenem
-propagacijskem modelu.
+Na podlagi rezultatov eksperimentalne evalvacije je bilo ugotovljeno, da se v primerih brez vidne linije (NLOS) napaka simulacije sistematično spreminja z razdaljo med oddajnikom in sprejemnikom. Opazna je bila odvisnost med dolžino povezave in razliko med izmerjeno ter simulirano vrednostjo RSSI, kar kaže na prisotnost razdaljsko odvisnega sistematičnega odklona v uporabljenem propagacijskem modelu.
 
-Z namenom izboljšanja natančnosti napovedi je bila izvedena kalibracija
-simulacijskih rezultatov na podlagi dejanskih meritev. Kalibracija je temeljila
-na linearni regresiji, s katero je bila modelirana odvisnost napake simulacije
-od razdalje. Izračunani linearni regresijski model je bil nato uporabljen za
-korekcijo simuliranih vrednosti RSSI.
+Z namenom izboljšanja natančnosti napovedi je bila izvedena kalibracija simulacijskih rezultatov na podlagi dejanskih meritev. Kalibracija je temeljila na linearni regresiji, s katero je bila modelirana odvisnost napake simulacije od razdalje. Izračunani linearni regresijski model je bil nato uporabljen za korekcijo simuliranih vrednosti RSSI.
 
-Za preprečevanje pristranskosti in preverjanje posplošljivosti kalibracije so
-bili razpoložljivi podatki razdeljeni na dva disjunktna dela. Prva polovica
-meritev je bila uporabljena za izračun regresijskega modela, druga polovica pa
-za neodvisno evalvacijo učinkovitosti kalibracije. Meritve v obeh delih so bile
-izvedene na različnih odsekih poti, kar zagotavlja, da kalibracija ni
-prilagojena specifični trasi ali lokalnim značilnostim okolja.
+Za preprečevanje pristranskosti in preverjanje posplošljivosti kalibracije so bili razpoložljivi podatki razdeljeni na dva disjunktna dela. Prva polovica meritev je bila uporabljena za izračun regresijskega modela, druga polovica pa za neodvisno evalvacijo učinkovitosti kalibracije. Meritve v obeh delih so bile izvedene na različnih odsekih poti, kar zagotavlja, da kalibracija ni prilagojena specifični trasi ali lokalnim značilnostim okolja.
 
-Na sliki~\ref{fig:7369fb6a-box-before} je prikazana porazdelitev napak
-simulacije glede na propagacijske pogoje pred izvedeno kalibracijo, medtem ko
-slika~\ref{fig:7369fb6a-box-after} prikazuje porazdelitev napak po uporabi
-kalibracijskega modela.
+Na sliki~\ref{fig:7369fb6a-box-before} je prikazana porazdelitev napak simulacije glede na propagacijske pogoje pred izvedeno kalibracijo, medtem ko slika~\ref{fig:7369fb6a-box-after} prikazuje porazdelitev napak po uporabi kalibracijskega modela.
 
 \begin{figure}[H]
 \centering

@@ -5,7 +5,7 @@ Cilj aplikacije je ohraniti osnovno funkcionalnost izhodiščne rešitve aplikac
 Razvita aplikacija mora uporabniku omogočati:
 \begin{itemize}
     \item simulacijo radijske pokritosti oddajnika na izbranem geografskem območju na podlagi radijskega modela,
-    \item analizo vidne linije (Line-of-Sight) med dvema izbranima točkama,
+    \item analizo vidne linije (angl.~\emph{line of sight}) med dvema izbranima točkama,
     \item iskanje optimalne lokacije oddajnika iz vnaprej določenega seznama potencialnih lokacij,
     \item iskanje optimalne lokacije oddajnika znotraj izbranega geografskega območja.
 \end{itemize}
@@ -39,7 +39,7 @@ V začetni fazi razvoja je bila za oblikovanje uporabljena knjižnica Bootstrap~
 
 Osrednji element čelnega sistema je interaktivni zemljevid, zgrajen na knjižnici MapLibre GL~\cite{vueMapLibreGL, maplibre}, ki omogoča vizualizacijo rezultatov simulacij v obliki kartografskih slojev, markerjev in grafičnih prikazov jakosti signala. Prvotno uporabljena knjižnica Leaflet~\cite{leafletjs} se je izkazala za manj primerno pri delu z večjimi količinami prostorskih podatkov, zato je bila nadomeščena z zmogljivejšo alternativo.
 
-Poleg zemljevida čelni sistem vključuje tudi obrazce za vnos parametrov simulacij ter pregledne prikaze rezultatov. Za zagotavljanje konsistentnosti podatkov se uporablja centralizirana shramba stanja, komunikacija z zalednim sistemom pa poteka prek REST API klicev.
+Poleg zemljevida čelni sistem vključuje tudi obrazce za vnos parametrov simulacij ter pregledne prikaze rezultatov. Za zagotavljanje konsistentnosti podatkov se uporablja centralizirana shramba stanja, komunikacija z zalednim sistemom pa poteka prek klicev REST API.
 
 \paragraph{Zaledni del}
 Zaledni del je implementiran v programskem jeziku Python~\cite{python} z uporabo ogrodja FastAPI~\cite{fastapi}. Njegova glavna naloga je obdelava uporabniških zahtev, validacija vhodnih parametrov, priprava vhodnih datotek za simulacije, izvajanje izračunov ter posredovanje rezultatov čelnemu sistemu.
