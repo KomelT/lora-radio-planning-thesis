@@ -158,7 +158,7 @@ SPLAT! podpira do 32 različnih barvnih nivojev, ki jih interpolira med največj
 \paragraph{Avtomatsko generiranje datoteke.}
 Za dinamično generiranje datoteke \texttt{.dcf} je v zalednem delu implementiran postopek, ki samodejno izdela vsebino na podlagi izbrane barvne karte (angl.~\emph{colormap}) iz knjižnice \texttt{Matplotlib}. Aplikacija generira 32 barvnih korakov med podanima mejama \texttt{min\_dbm} in \texttt{max\_dbm} ter jih zapiše v besedilni obliki.
 
-Tako ustvarjena vsebina se pretvori v bajtni zapis in posreduje programu SPLAT! kot vhodna datoteka. Postopek omogoča, da ima uporabnik možnost izbire različnih barvnih shem (npr.~\texttt{viridis}, \texttt{plasma}, \texttt{turbo}) ter da sistem prilagodi vizualni prikaz pokritosti brez ročnega urejanja datotek.
+Tako ustvarjena vsebina se pretvori v bajtni zapis in posreduje programu SPLAT! kot vhodna datoteka.
 
 \paragraph{Uporaba.}
 Datoteka \texttt{.dcf} se uporabi le pri simulacijah pokritosti, kjer je v \texttt{.lrp} datoteki ali prek parametra \texttt{-erp} določena efektivna sevalna moč oddajnika (ERP). V tem primeru SPLAT! namesto kontur izgub (\texttt{.lcf}) ali polj jakosti (\texttt{.scf}) uporabi definicije barv iz \texttt{.dcf} za prikaz sprejete moči v dBm. Pri analizi vidne linije (\texttt{-c}) se ta datoteka ne uporablja, saj se tam generirajo le geometrijski rezultati brez barvnih kontur.
