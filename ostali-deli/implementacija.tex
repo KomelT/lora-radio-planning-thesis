@@ -70,7 +70,7 @@ WNJT-DT
 990.00
 \end{verbatim}
 
-V zadnji vrstici se privzeto predpostavi, da je višina podana v čevljih, razen če je za številčno vrednostjo navedena enota \texttt{m} ali beseda \texttt{meters}. Geografska širina in dolžina se lahko zapišeta v decimalnem formatu (npr.~\texttt{46.0500}) ali v formatu stopinje–minute–sekunde (npr.~\texttt{46 3 0.0}). Vsak analiziran oddajnik in sprejemnik mora imeti svojo lastno \texttt{.qth} datoteko, ki jo program naloži ob izvajanju simulacije.
+V zadnji vrstici se privzeto predpostavi, da je višina podana v čevljih, razen če je za številčno vrednostjo navedena enota \texttt{m} ali beseda \texttt{meters}. Geografska širina in dolžina se lahko zapišeta v decimalnem formatu (npr.~\texttt{46.0500}) ali v formatu stopinje--minute--sekunde (npr.~\texttt{46 3 0.0}). Vsak analiziran oddajnik in sprejemnik mora imeti svojo lastno \texttt{.qth} datoteko, ki jo program naloži ob izvajanju simulacije.
 
 SPLAT! pričakuje nekoliko drugačno predstavitev dolžine kot standard EPSG:4326 (WGS84), ki jo uporablja večina sodobnih GIS sistemov. V EPSG:4326 so pozitivne vrednosti dolžin vzhodno od Greenwicha, negativne pa zahodno. SPLAT! pa zahteva pozitivne vrednosti za zahodno poloblo (0~do~360°~W) in negativne za vzhodno (0~do~--360°~E). Da zagotovimo pravilno interpretacijo, se v aplikaciji uporablja naslednja pretvorba:
 
@@ -92,7 +92,7 @@ S tem se zagotovita pravilna orientacija in skladnost z vhodnim formatom, ki ga 
 
 \subsection{Parametri radijskega modela}
 Poleg lokacijskih datotek \texttt{.qth} SPLAT! za vsako simulacijo uporablja tudi \textbf{.lrp} datoteko (angl. \emph{irregular terrain model parameter file}), ki določa fizikalne in statistične parametre modela 
-Longley–Rice (ITM – \emph{irregular terrain model}).  
+Longley--Rice (ITM -- \emph{irregular terrain model}).  
 
 Datoteka \texttt{.lrp} vsebuje osem (po izbiri devet) vrstic, pri čemer vsaka določa en parameter modela:
 
@@ -100,13 +100,13 @@ Datoteka \texttt{.lrp} vsebuje osem (po izbiri devet) vrstic, pri čemer vsaka d
   \item \textbf{Dielektrična konstanta in prevodnost tal} določata elektromagnetne lastnosti podlage; 
   tipične vrednosti so 15 in 0.005~S/m za povprečna tla.  
   \item \textbf{Atmosferska refrakcijska konstanta} (privzeto 301~N) opisuje ukrivljanje radijskih valov zaradi sprememb lomnega količnika v atmosferi.
-  \item \textbf{Frekvenca} določa območje uporabe modela (20~MHz–20~GHz).  
-  \item \textbf{Radijska klima} (1–7) opisuje povprečne podnebne pogoje: 
+  \item \textbf{Frekvenca} določa območje uporabe modela (20~MHz--20~GHz).  
+  \item \textbf{Radijska klima} (1--7) opisuje povprečne podnebne pogoje: 
   npr.~1~=~ekvatorialna, 5~=~celinsko zmerna (privzeto), 7~=~maritimna nad morjem.  
   \item \textbf{Polarizacija} označuje orientacijo elektromagnetnega polja (0~=~horizontalna, 1~=~vertikalna).  
   \item \textbf{Delež lokacij} in \textbf{delež časa} opredeljujeta statistični kriterij F($p$,~$q$), npr.~F(50,90), 
   kar pomeni, da bo največja izguba poti nastopila v 50~\% situacij 90~\% časa.  
-  Ta kriterij je standardno uporabljen pri modelih Longley–Rice.
+  Ta kriterij je standardno uporabljen pri modelih Longley--Rice.
 \end{itemize}
 
 Če je zadnji parameter (ERP) izpuščen, SPLAT! izračuna zgolj izgube signala (ang. \emph{path loss}).  
@@ -144,7 +144,7 @@ Tako izračunana ERP vrednost se zapiše v zadnjo vrstico \texttt{.lrp} datoteke
 Pri simulacijah radijske pokritosti SPLAT! uporablja datoteko \textbf{.dcf} (angl. \emph{dBm color definition file}), ki določa barvno lestvico za prikaz nivojev sprejete moči v enotah dBm. Ta datoteka ni potrebna pri analizi vidne linije (LOS), saj se tam rezultati ne prikazujejo v obliki kontur, temveč le kot enodimenzionalen profil terena. Uporablja se torej izključno pri območnih simulacijah.
 
 \paragraph{Struktura datoteke.}
-Vsaka vrstica v datoteki \texttt{.dcf} določa razpon jakosti signala in pripadajočo barvo v RGB formatu (0–255).
+Vsaka vrstica v datoteki \texttt{.dcf} določa razpon jakosti signala in pripadajočo barvo v RGB formatu (0--255).
 
 SPLAT! podpira do 32 različnih barvnih nivojev, ki jih interpolira med največjo in najmanjšo vrednostjo. Barvna lestvica omogoča hitro vizualno interpretacijo jakosti signala na karti, kjer rdeči toni označujejo najmočnejše vrednosti, modri in vijolični pa območja šibkega signala.
 
@@ -159,21 +159,21 @@ Datoteka \texttt{.dcf} se uporabi le pri simulacijah pokritosti, kjer je v \text
 
 \subsection{Izvedba simulacije}
 
-Simulacija se izvede s klicem zunanjega programa SPLAT! oziroma SPLAT-HD, odvisno od izbrane ločljivosti terenskih podatkov. Oba programa imata enak nabor ukaznih parametrov (\emph{flagov}), ki določajo vhodne datoteke, fizične parametre modela in izhodne formate. Zaledni sistem zgradi ukazno vrstico glede na vrsto zahteve – bodisi analizo vidne linije (LOS) bodisi izračun pokritosti (Coverage Prediction) – in jo zažene v ločenem procesu znotraj začasne mape.
+Simulacija se izvede s klicem zunanjega programa SPLAT! oziroma SPLAT-HD, odvisno od izbrane ločljivosti terenskih podatkov. Oba programa imata enak nabor ukaznih parametrov (\emph{flagov}), ki določajo vhodne datoteke, fizične parametre modela in izhodne formate. Zaledni sistem zgradi ukazno vrstico glede na vrsto zahteve -- bodisi analizo vidne linije (LOS) bodisi izračun pokritosti (Coverage Prediction) -- in jo zažene v ločenem procesu znotraj začasne mape.
 
 Najpogosteje uporabljeni parametri so:
 \begin{itemize}
-  \item \texttt{-t} – pot do datoteke z oddajnikom (\texttt{tx.qth});
-  \item \texttt{-r} – pot do datoteke s sprejemnikom (\texttt{rx.qth});
-  \item \texttt{-L} – višina sprejemne antene (v metrih);
-  \item \texttt{-R} – polmer območja izračuna (v kilometrih);
-  \item \texttt{-f} – delovna frekvenca v MHz za izračun Fresnelovih con;
-  \item \texttt{-gc} – višina talne oviranosti (vegetacija, objekti);
-  \item \texttt{-db} in \texttt{-dbm} – prag in način prikaza jakosti signala;
-  \item \texttt{-kml} – izvoz v format, združljiv z orodjem Google Earth;
-  \item \texttt{-gpsav} – ohrani začasne \texttt{gnuplot} datoteke;
-  \item \texttt{-metric} – uporaba metričnega sistema enot;
-  \item \texttt{-olditm} – uporaba standardnega modela ITM (Longley–Rice) namesto modela ITWOM;
+  \item \texttt{-t} -- pot do datoteke z oddajnikom (\texttt{tx.qth});
+  \item \texttt{-r} -- pot do datoteke s sprejemnikom (\texttt{rx.qth});
+  \item \texttt{-L} -- višina sprejemne antene (v metrih);
+  \item \texttt{-R} -- polmer območja izračuna (v kilometrih);
+  \item \texttt{-f} -- delovna frekvenca v MHz za izračun Fresnelovih con;
+  \item \texttt{-gc} -- višina talne oviranosti (vegetacija, objekti);
+  \item \texttt{-db} in \texttt{-dbm} -- prag in način prikaza jakosti signala;
+  \item \texttt{-kml} -- izvoz v format, združljiv z orodjem Google Earth;
+  \item \texttt{-gpsav} -- ohrani začasne \texttt{gnuplot} datoteke;
+  \item \texttt{-metric} -- uporaba metričnega sistema enot;
+  \item \texttt{-olditm} -- uporaba standardnega modela ITM (Longley--Rice) namesto modela ITWOM;
 \end{itemize}
 
 \subsubsection*{Analiza vidne linije (LOS)}
@@ -204,7 +204,7 @@ Po zagonu se v začasni mapi ustvarijo različne izhodne datoteke, ki opisujejo 
 Tako dobljeni rezultat se vrne odjemalcu, kjer se podatki uporabijo za vizualizacijo profila poti in označevanje ovir. Sistem vmes ohrani tudi vse začasne datoteke, kar omogoča njihovo kasnejšo analizo ali ponovno uporabo brez ponovnega izračuna.
 
 \subsubsection*{Izračun pokritosti (Coverage Prediction)}
-Pri simulaciji pokritosti se izvede prostorski izračun jakosti signala na območju okoli oddajnika v danem polmeru. Za ta namen se uporabi model Longley–Rice (ITM), ki izračuna pričakovano moč signala za vsako točko znotraj območja. Program se zažene z naslednjimi parametri:
+Pri simulaciji pokritosti se izvede prostorski izračun jakosti signala na območju okoli oddajnika v danem polmeru. Za ta namen se uporabi model Longley--Rice (ITM), ki izračuna pričakovano moč signala za vsako točko znotraj območja. Program se zažene z naslednjimi parametri:
 \begin{verbatim}
 splat_command = [
     (self.splat_hd_binary if request.high_resolution else self.splat_binary),
@@ -229,9 +229,9 @@ splat_command = [
 
 Rezultat simulacije vključuje več datotek:
 \begin{itemize}
-  \item \texttt{output.ppm} – barvni zemljevid jakosti signala,
-  \item \texttt{output-ck.ppm} – barvna legenda (color key),
-  \item \texttt{output.kml} – prostorska referenca in obseg simuliranega območja.
+  \item \texttt{output.ppm} -- barvni zemljevid jakosti signala,
+  \item \texttt{output-ck.ppm} -- barvna legenda (color key),
+  \item \texttt{output.kml} -- prostorska referenca in obseg simuliranega območja.
 \end{itemize}
 
 Ohranjena je pretvorba iz \texttt{.ppm} v \texttt{.tif}. Datoteka \texttt{.ppm} se prebere in pretvori v enokanalno matriko sivinskih vrednosti, medtem ko datoteka \texttt{.kml} vsebuje meje območja (koordinate sever, jug, vzhod, zahod), ki omogočajo georeferenciranje. Na podlagi teh podatkov se z uporabo knjižnice \texttt{rasterio} in funkcije \texttt{from\_bounds()} izdela GeoTIFF slika, pri čemer se ustvari barvna lestvica iz izbranega \texttt{Matplotlib} kolormap-a in dBm razpona. Nastavi se tudi vrednost \texttt{nodata} za prosojna območja in priloži GDAL-združljiv barvni zemljevid.
@@ -268,7 +268,7 @@ V čelnem sistemu se rezultat prikaže v obliki grafa profila poti, ki uporabnik
 Vsi podatki se prikažejo interaktivno: uporabnik lahko premika kazalec po profilu, da odčita višino terena in druge izračunane vrednosti za posamezno razdaljo. Barvna legenda jasno razlikuje posamezne plasti grafa (teren, direktno linijo, Fresnelove cone in krivino Zemlje), kar omogoča hitro vizualno oceno morebitnih ovir na poti.
 
 Graf je interaktiven in povezan z zemljevidom. Ko se uporabnik z miško premika po profilu poti, se na zemljevidu istočasno prikaže ustrezna točka na terenu. Na ta način lahko uporabnik hitro prepozna natančno lokacijo posamezne ovire ali območja, kjer signal izgubi vidno linijo.  
-Sinhronizacija med grafom in zemljevidom omogoča intuitivno analizo – uporabnik ne vidi le numeričnih vrednosti, temveč tudi prostorski kontekst, kar izboljša razumevanje rezultatov in načrtovanje postavitve anten.
+Sinhronizacija med grafom in zemljevidom omogoča intuitivno analizo -- uporabnik ne vidi le numeričnih vrednosti, temveč tudi prostorski kontekst, kar izboljša razumevanje rezultatov in načrtovanje postavitve anten.
 
 \begin{figure}[htb]
 \centering
