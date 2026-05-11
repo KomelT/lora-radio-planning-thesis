@@ -2,6 +2,8 @@
 
 Web-based radio modelling and planning tool for LoRa networks, developed as part of a bachelor’s thesis.
 
+**Final thesis** https://repozitorij.uni-lj.si/IzpisGradiva.php?id=182336&lang=eng
+**Code repository** https://github.com/KomelT/rf-site-planner
 **Live demo:** https://rf-planner.komelt.dev/
 
 ---
